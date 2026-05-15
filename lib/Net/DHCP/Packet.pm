@@ -585,7 +585,8 @@ sub marshall {
             $type = ord( substr( $opt_buf, $pos++, 1 ) );
             next if ( $type eq DHO_PAD() );  # Skip padding bytes
             last if ( $type eq DHO_END() );  # Type 'FF' signals end of options.
-            my $len = ord( substr( $opt_buf, $pos++, 1 ) ); # FIXME sanity check length
+            my $len = ord( substr( $opt_buf, $pos++, 1 ) );
+            $len = $total - $pos if $pos + $len > $total;
             my $option = substr( $opt_buf, $pos, $len );
             $pos += $len;
             $self->addOptionRaw( $type, $option );
@@ -734,7 +735,8 @@ sub unpacksuboptions {
 
     while ( $pos < $total ) {
         my $type = ord( substr( $opt_buf, $pos++, 1 ) );
-        my $len  = ord( substr( $opt_buf, $pos++, 1 ) ); # FIXME check this more
+        my $len  = ord( substr( $opt_buf, $pos++, 1 ) );
+        $len = $total - $pos if $pos + $len > $total;
         my $option = substr( $opt_buf, $pos, $len );
         $pos += $len;
         push @relay_opt, [ $type, $option ];
