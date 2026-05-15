@@ -9,17 +9,13 @@ use 5.8.0;
 
 package Net::DHCP::Packet::Attributes;
 
-# standard module declaration
-our ( @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS );
-use Exporter;
-@ISA       = qw(Exporter);
-@EXPORT    = qw( );
-@EXPORT_OK = qw(
+use Exporter 'import';
+our @EXPORT_OK = qw(
   comment op htype hlen hops xid secs flags ciaddr
   ciaddrRaw yiaddr yiaddrRaw siaddr siaddrRaw giaddr giaddrRaw
   chaddr chaddrRaw sname file isDhcp padding
 );
-%EXPORT_TAGS = ( all => \@EXPORT_OK );
+our %EXPORT_TAGS = ( all => \@EXPORT_OK );
 
 use Carp qw/ carp /;
 use Net::DHCP::Packet::IPv4Utils qw( packinet unpackinet byte_len );

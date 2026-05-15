@@ -8,12 +8,9 @@ use 5.8.0;
 
 package Net::DHCP::Constants;
 
-# standard module declaration
-our ( @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS );
-use Exporter;
-@ISA     = qw(Exporter);
+use Exporter 'import';
 
-@EXPORT = qw(MAGIC_COOKIE);
+our @EXPORT = qw(MAGIC_COOKIE);
 
 # Constants
 our ( %DHO_CODES,        %REV_DHO_CODES );
@@ -27,7 +24,7 @@ our ( %RELAYAGENT_CODES, %REV_RELAYAGENT_CODES );
 our ( %RELAYAGENT_FORMATS, %REV_RELAYAGENT_FORMATS );
 our ( %SUBOPTION_CODES,  %REV_SUBOPTION_CODES );
 
-%EXPORT_TAGS = (
+our %EXPORT_TAGS = (
     dho_codes     => [ keys %DHO_CODES ],
     dhcp_message  => [ keys %DHCP_MESSAGE ],
     bootp_codes   => [ keys %BOOTP_CODES ],
@@ -54,7 +51,7 @@ our ( %SUBOPTION_CODES,  %REV_SUBOPTION_CODES );
     ]
 );
 
-@EXPORT_OK = qw(
+our @EXPORT_OK = qw(
   %DHO_CODES %REV_DHO_CODES
   %DHCP_MESSAGE %REV_DHCP_MESSAGE
   %BOOTP_CODES %REV_BOOTP_CODES
