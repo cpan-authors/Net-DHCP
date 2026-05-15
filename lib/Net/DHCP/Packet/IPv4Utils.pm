@@ -13,7 +13,7 @@ package Net::DHCP::Packet::IPv4Utils;
 our ( @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS );
 use Exporter;
 @ISA       = qw(Exporter);
-@EXPORT    = qw( ); # FIXME this is rude
+@EXPORT    = qw( );
 @EXPORT_OK = qw( packinet packinets unpackinet unpackinets packinets_array unpackinets_array );
 %EXPORT_TAGS = ( all => \@EXPORT_OK );
 
