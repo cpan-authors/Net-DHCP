@@ -1,12 +1,10 @@
 #!/usr/bin/env perl
-
-use Test::More tests => 39;
+use strict;
+use warnings;
+use Test::More tests => 7;
 
 BEGIN { use_ok( 'Net::DHCP::Packet::IPv4Utils', ':all' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants' ); }
-
-use strict;
-use warnings;
 
 my $pac1 = "\0\0\0\0";
 my $pac2 = "\1\2\3\4";
@@ -20,49 +18,63 @@ my $ip3 = '1.2.3.4.5.6';
 my $ip4 = " 1 . 2 . 3 . \t4 ";
 my $ip5 = '1.2.0.0';
 
-is( packinet($ip1), $pac1, 'packinet 1');
-is( packinet($ip2), $pac2 ,'packinet 2');
-is( packinet($ip3), $pac2);
-is( packinet($ip4), $pac1);
-is( packinet(undef), $pac1);
-is( packinet(q||), $pac1);
-is( packinet(0), $pac1);
-is( packinet(0x04030201), $pac1);
+subtest 'packinet' => sub {
+    plan tests => 8;
+    is( packinet($ip1), $pac1, 'packinet 1');
+    is( packinet($ip2), $pac2 ,'packinet 2');
+    is( packinet($ip3), $pac2);
+    is( packinet($ip4), $pac1);
+    is( packinet(undef), $pac1);
+    is( packinet(q||), $pac1);
+    is( packinet(0), $pac1);
+    is( packinet(0x04030201), $pac1);
+};
 
-is( unpackinet($pac1), $ip1, 'unpackinet');
-is( unpackinet($pac2), $ip2);
-is( unpackinet($pac3), $ip1);
-is( unpackinet($pac4), $ip1);
-is( unpackinet(undef), $ip1);
-is( unpackinet(q||), $ip1);
-is( unpackinet(0), $ip1);
-is( unpackinet(0x04030201), $ip1);
+subtest 'unpackinet' => sub {
+    plan tests => 8;
+    is( unpackinet($pac1), $ip1, 'unpackinet');
+    is( unpackinet($pac2), $ip2);
+    is( unpackinet($pac3), $ip1);
+    is( unpackinet($pac4), $ip1);
+    is( unpackinet(undef), $ip1);
+    is( unpackinet(q||), $ip1);
+    is( unpackinet(0), $ip1);
+    is( unpackinet(0x04030201), $ip1);
+};
 
-is( packinets("$ip1 $ip1"), $pac1.$pac1, 'packinets');
-is( packinets("$ip2 $ip5"), $pac2.$pac5);
-is( packinets("$ip1,$ip2;$ip1/$ip2\t$ip1;;;$ip2"), $pac1.$pac2.$pac1.$pac2.$pac1.$pac2);
-is( packinets($ip1), $pac1);
-is( packinets($ip2), $pac2);
-is( packinets($ip3), $pac2);
-is( packinets($ip4), $pac1 x 8);
-is( packinets($ip5), $pac5);
-is( packinets(undef), $pac1,'packinets undef returns 0.0.0.0');
-is( packinets(''), $pac1,'packinets "" returns 0.0.0.0');
-is( packinets(0), $pac1,'0 goes to 0.0.0.0');
+subtest 'packinets' => sub {
+    plan tests => 11;
+    is( packinets("$ip1 $ip1"), $pac1.$pac1, 'packinets');
+    is( packinets("$ip2 $ip5"), $pac2.$pac5);
+    is( packinets("$ip1,$ip2;$ip1/$ip2\t$ip1;;;$ip2"), $pac1.$pac2.$pac1.$pac2.$pac1.$pac2);
+    is( packinets($ip1), $pac1);
+    is( packinets($ip2), $pac2);
+    is( packinets($ip3), $pac2);
+    is( packinets($ip4), $pac1 x 8);
+    is( packinets($ip5), $pac5);
+    is( packinets(undef), $pac1,'packinets undef returns 0.0.0.0');
+    is( packinets(''), $pac1,'packinets "" returns 0.0.0.0');
+    is( packinets(0), $pac1,'0 goes to 0.0.0.0');
+};
 
-is( unpackinets($pac1), $ip1, 'unpackinets');
-is( unpackinets($pac2), $ip2);
-is( unpackinets($pac3), "$ip2 $ip1");
-is( unpackinets($pac4), $ip1);
-is( unpackinets(undef), $ip1);
-is( unpackinets(''), $ip1);
-is( unpackinets(0), $ip1);
-is( unpackinets(0x04030201), '54.55.51.48 53.57.56.53'); # decimal value 67305985
+subtest 'unpackinets' => sub {
+    plan tests => 8;
+    is( unpackinets($pac1), $ip1, 'unpackinets');
+    is( unpackinets($pac2), $ip2);
+    is( unpackinets($pac3), "$ip2 $ip1");
+    is( unpackinets($pac4), $ip1);
+    is( unpackinets(undef), $ip1);
+    is( unpackinets(''), $ip1);
+    is( unpackinets(0), $ip1);
+    is( unpackinets(0x04030201), '54.55.51.48 53.57.56.53');
+};
 
-my @arr;
-@arr = unpackinets_array($pac3);
-is_deeply( \@arr, [$ip2, $ip1], 'unpackinets_array');
-
-@arr = ($ip2, $ip5);
-is( packinets_array(@arr), $pac2.$pac5, 'packinets_array');
+subtest 'packinets_array / unpackinets_array' => sub {
+    plan tests => 2;
+    my @arr;
+    @arr = unpackinets_array($pac3);
+    is_deeply( \@arr, [$ip2, $ip1], 'unpackinets_array');
+    @arr = ($ip2, $ip5);
+    is( packinets_array(@arr), $pac2.$pac5, 'packinets_array');
+};
 

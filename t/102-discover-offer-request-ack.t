@@ -1,11 +1,9 @@
 #!/usr/bin/env perl
-
+use strict;
+use warnings;
 use Test::More tests => 81;
 use Test::Warn;
 use FindBin;
-
-use strict;
-use warnings;
 
 BEGIN { use_ok('Net::DHCP::Packet'); }
 BEGIN { use_ok('Net::DHCP::Constants', ':htype_codes', ':dhcp_message',':dhcp_hashes' ); }
@@ -18,19 +16,19 @@ my @data;
 # DISCOVER
 push @data, [
 {
-    htype => HTYPE_ETHER,
-    hlen => 6,
-    hops => 0,
-    xid => '15645',
-    flags => 0,
-    ciaddr => '0.0.0.0',
-    yiaddr => '0.0.0.0',
-    siaddr => '0.0.0.0',
-    giaddr => '0.0.0.0',
-    chaddr => '000b8201fc4200000000000000000000',
-    sname => '',
-    file  => '',
-    isDhcp => 1,
+    htype   => HTYPE_ETHER,
+    hlen    => 6,
+    hops    => 0,
+    xid     => '15645',
+    flags   => 0,
+    ciaddr  => '0.0.0.0',
+    yiaddr  => '0.0.0.0',
+    siaddr  => '0.0.0.0',
+    giaddr  => '0.0.0.0',
+    chaddr  => '000b8201fc4200000000000000000000',
+    sname   => '',
+    file    => '',
+    isDhcp  => 1,
     padding => '00000000000000',
 }, {
     53 => DHCPDISCOVER,
@@ -43,23 +41,23 @@ push @data, [
 # OFFER
 push @data, [
 {
-    htype => HTYPE_ETHER,
-    hlen => 6,
-    hops => 0,
-    xid => '15645',
-    flags => 0,
-    ciaddr => '0.0.0.0',
-    yiaddr => '192.168.0.10',
-    siaddr => '192.168.0.1',
-    giaddr => '0.0.0.0',
-    chaddr => '000b8201fc4200000000000000000000',
-    sname => '',
-    file  => '',
-    isDhcp => 1,
+    htype   => HTYPE_ETHER,
+    hlen    => 6,
+    hops    => 0,
+    xid     => '15645',
+    flags   => 0,
+    ciaddr  => '0.0.0.0',
+    yiaddr  => '192.168.0.10',
+    siaddr  => '192.168.0.1',
+    giaddr  => '0.0.0.0',
+    chaddr  => '000b8201fc4200000000000000000000',
+    sname   => '',
+    file    => '',
+    isDhcp  => 1,
     padding => '0000000000000000000000000000000000000000000000000000',
 }, {
     53 => DHCPOFFER,
-    1 => '255.255.255.0',
+    1  => '255.255.255.0',
     58 => 1800,
     59 => 3150,
     51 => 3600,
@@ -70,19 +68,19 @@ push @data, [
 # REQUEST
 push @data, [
 {
-    htype => HTYPE_ETHER,
-    hlen => 6,
-    hops => 0,
-    xid => '15646',
-    flags => 0,
-    ciaddr => '0.0.0.0',
-    yiaddr => '0.0.0.0',
-    siaddr => '0.0.0.0',
-    giaddr => '0.0.0.0',
-    chaddr => '000b8201fc4200000000000000000000',
-    sname => '',
-    file  => '',
-    isDhcp => 1,
+    htype   => HTYPE_ETHER,
+    hlen    => 6,
+    hops    => 0,
+    xid     => '15646',
+    flags   => 0,
+    ciaddr  => '0.0.0.0',
+    yiaddr  => '0.0.0.0',
+    siaddr  => '0.0.0.0',
+    giaddr  => '0.0.0.0',
+    chaddr  => '000b8201fc4200000000000000000000',
+    sname   => '',
+    file    => '',
+    isDhcp  => 1,
     padding => '00',
 }, {
     53 => DHCPREQUEST,
@@ -96,27 +94,27 @@ push @data, [
 # ACK
 push @data, [
 {
-    htype => HTYPE_ETHER,
-    hlen => 6,
-    hops => 0,
-    xid => '15646',
-    flags => 0,
-    ciaddr => '0.0.0.0',
-    yiaddr => '192.168.0.10',
-    siaddr => '0.0.0.0',
-    giaddr => '0.0.0.0',
-    chaddr => '000b8201fc4200000000000000000000',
-    sname => '',
-    file  => '',
-    isDhcp => 1,
+    htype   => HTYPE_ETHER,
+    hlen    => 6,
+    hops    => 0,
+    xid     => '15646',
+    flags   => 0,
+    ciaddr  => '0.0.0.0',
+    yiaddr  => '192.168.0.10',
+    siaddr  => '0.0.0.0',
+    giaddr  => '0.0.0.0',
+    chaddr  => '000b8201fc4200000000000000000000',
+    sname   => '',
+    file    => '',
+    isDhcp  => 1,
     padding => '0000000000000000000000000000000000000000000000000000',
 }, {
     53 => DHCPACK,
+    1  => '255.255.255.0',
     58 => 1800,
     59 => 3150,
     51 => 3600,
     54 => '192.168.0.1',
-    1 => '255.255.255.0',
 },
 ];
 

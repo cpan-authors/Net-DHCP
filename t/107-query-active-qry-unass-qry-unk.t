@@ -1,11 +1,9 @@
 #!/usr/bin/env perl
-
+use strict;
+use warnings;
 use Test::More tests => 98;
 use Test::Warn;
 use FindBin;
-
-use strict;
-use warnings;
 
 BEGIN { use_ok('Net::DHCP::Packet'); }
 BEGIN { use_ok('Net::DHCP::Constants'); }
@@ -18,19 +16,19 @@ my @data;
 # packet 1
 push @data, [
 {
-    htype => 0,
-    hlen => 0,
-    hops => 0,
-    xid => '3788063565',
-    flags => 0,
-    ciaddr => '1.1.1.2',
-    yiaddr => '0.0.0.0',
-    siaddr => '0.0.0.0',
-    giaddr => '10.10.39.14',
-    chaddr => '00000000000000000000000000000000',
-    sname => '',
-    file  => '',
-    isDhcp => 1,
+    htype   => 0,
+    hlen    => 0,
+    hops    => 0,
+    xid     => '3788063565',
+    flags   => 0,
+    ciaddr  => '1.1.1.2',
+    yiaddr  => '0.0.0.0',
+    siaddr  => '0.0.0.0',
+    giaddr  => '10.10.39.14',
+    chaddr  => '00000000000000000000000000000000',
+    sname   => '',
+    file    => '',
+    isDhcp  => 1,
     padding => '',
 }, {
     53 => 10,
@@ -40,19 +38,19 @@ push @data, [
 # packet 2
 push @data, [
 {
-    htype => 1,
-    hlen => 6,
-    hops => 0,
-    xid => '3788063565',
-    flags => 0,
-    ciaddr => '1.1.1.2',
-    yiaddr => '0.0.0.0',
-    siaddr => '0.0.0.0',
-    giaddr => '10.10.39.14',
-    chaddr => '02020101010200000000000000000000',
-    sname => '',
-    file  => '',
-    isDhcp => 1,
+    htype   => 1,
+    hlen    => 6,
+    hops    => 0,
+    xid     => '3788063565',
+    flags   => 0,
+    ciaddr  => '1.1.1.2',
+    yiaddr  => '0.0.0.0',
+    siaddr  => '0.0.0.0',
+    giaddr  => '10.10.39.14',
+    chaddr  => '02020101010200000000000000000000',
+    sname   => '',
+    file    => '',
+    isDhcp  => 1,
     padding => '',
 }, {
     53 => 13,
@@ -62,19 +60,19 @@ push @data, [
 # packet 3
 push @data, [
 {
-    htype => 0,
-    hlen => 0,
-    hops => 0,
-    xid => '3804840781',
-    flags => 0,
-    ciaddr => '1.1.1.3',
-    yiaddr => '0.0.0.0',
-    siaddr => '0.0.0.0',
-    giaddr => '10.10.39.14',
-    chaddr => '00000000000000000000000000000000',
-    sname => '',
-    file  => '',
-    isDhcp => 1,
+    htype   => 0,
+    hlen    => 0,
+    hops    => 0,
+    xid     => '3804840781',
+    flags   => 0,
+    ciaddr  => '1.1.1.3',
+    yiaddr  => '0.0.0.0',
+    siaddr  => '0.0.0.0',
+    giaddr  => '10.10.39.14',
+    chaddr  => '00000000000000000000000000000000',
+    sname   => '',
+    file    => '',
+    isDhcp  => 1,
     padding => '',
 }, {
     53 => 10,
@@ -84,19 +82,19 @@ push @data, [
 # packet 4
 push @data, [
 {
-    htype => 0,
-    hlen => 0,
-    hops => 0,
-    xid => '3804840781',
-    flags => 0,
-    ciaddr => '1.1.1.3',
-    yiaddr => '0.0.0.0',
-    siaddr => '0.0.0.0',
-    giaddr => '10.10.39.14',
-    chaddr => '00000000000000000000000000000000',
-    sname => '',
-    file  => '',
-    isDhcp => 1,
+    htype   => 0,
+    hlen    => 0,
+    hops    => 0,
+    xid     => '3804840781',
+    flags   => 0,
+    ciaddr  => '1.1.1.3',
+    yiaddr  => '0.0.0.0',
+    siaddr  => '0.0.0.0',
+    giaddr  => '10.10.39.14',
+    chaddr  => '00000000000000000000000000000000',
+    sname   => '',
+    file    => '',
+    isDhcp  => 1,
     padding => '',
 }, {
     53 => 11,
@@ -106,19 +104,19 @@ push @data, [
 # packet 5
 push @data, [
 {
-    htype => 0,
-    hlen => 0,
-    hops => 0,
-    xid => '3821617997',
-    flags => 0,
-    ciaddr => '1.1.1.11',
-    yiaddr => '0.0.0.0',
-    siaddr => '0.0.0.0',
-    giaddr => '10.10.39.14',
-    chaddr => '00000000000000000000000000000000',
-    sname => '',
-    file  => '',
-    isDhcp => 1,
+    htype   => 0,
+    hlen    => 0,
+    hops    => 0,
+    xid     => '3821617997',
+    flags   => 0,
+    ciaddr  => '1.1.1.11',
+    yiaddr  => '0.0.0.0',
+    siaddr  => '0.0.0.0',
+    giaddr  => '10.10.39.14',
+    chaddr  => '00000000000000000000000000000000',
+    sname   => '',
+    file    => '',
+    isDhcp  => 1,
     padding => '',
 }, {
     53 => 10,
@@ -128,19 +126,19 @@ push @data, [
 # packet 6
 push @data, [
 {
-    htype => 0,
-    hlen => 0,
-    hops => 0,
-    xid => '3821617997',
-    flags => 0,
-    ciaddr => '1.1.1.11',
-    yiaddr => '0.0.0.0',
-    siaddr => '0.0.0.0',
-    giaddr => '10.10.39.14',
-    chaddr => '00000000000000000000000000000000',
-    sname => '',
-    file  => '',
-    isDhcp => 1,
+    htype   => 0,
+    hlen    => 0,
+    hops    => 0,
+    xid     => '3821617997',
+    flags   => 0,
+    ciaddr  => '1.1.1.11',
+    yiaddr  => '0.0.0.0',
+    siaddr  => '0.0.0.0',
+    giaddr  => '10.10.39.14',
+    chaddr  => '00000000000000000000000000000000',
+    sname   => '',
+    file    => '',
+    isDhcp  => 1,
     padding => '',
 }, {
     53 => 12,

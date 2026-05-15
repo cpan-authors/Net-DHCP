@@ -1,11 +1,9 @@
 #!/usr/bin/env perl
-
+use strict;
+use warnings;
 use Test::More tests => 37;
 use Test::Warn;
 use FindBin;
-
-use strict;
-use warnings;
 
 BEGIN { use_ok('Net::DHCP::Packet'); }
 BEGIN { use_ok('Net::DHCP::Constants'); }
@@ -18,19 +16,19 @@ my @data;
 # packet 1
 push @data, [
 {
-    htype => 1,
-    hlen => 6,
-    hops => 1,
-    xid => 2011560758,
-    flags => 0,
-    ciaddr => '0.0.0.0',
-    yiaddr => '0.0.0.0',
-    siaddr => '0.0.0.0',
-    giaddr => '10.53.0.1',
-    chaddr => 'c40415bda86200000000000000000000',
-    sname => '',
-    file  => '',
-    isDhcp => 1,
+    htype   => 1,
+    hlen    => 6,
+    hops    => 1,
+    xid     => 2011560758,
+    flags   => 0,
+    ciaddr  => '0.0.0.0',
+    yiaddr  => '0.0.0.0',
+    siaddr  => '0.0.0.0',
+    giaddr  => '10.53.0.1',
+    chaddr  => 'c40415bda86200000000000000000000',
+    sname   => '',
+    file    => '',
+    isDhcp  => 1,
     padding => '',
 }, {
     53 => 1,
@@ -40,27 +38,27 @@ push @data, [
 # packet 2
 push @data, [
 {
-    htype => 1,
-    hlen => 6,
-    hops => 1,
-    xid => 2011560758,
-    flags => 0,
-    ciaddr => '0.0.0.0',
-    yiaddr => '10.214.98.138',
-    siaddr => '211.29.132.141',
-    giaddr => '10.53.0.1',
-    chaddr => 'c40415bda86200000000000000000000',
-    sname => '',
-    file  => '',
-    isDhcp => 1,
+    htype   => 1,
+    hlen    => 6,
+    hops    => 1,
+    xid     => 2011560758,
+    flags   => 0,
+    ciaddr  => '0.0.0.0',
+    yiaddr  => '10.214.98.138',
+    siaddr  => '211.29.132.141',
+    giaddr  => '10.53.0.1',
+    chaddr  => 'c40415bda86200000000000000000000',
+    sname   => '',
+    file    => '',
+    isDhcp  => 1,
     padding => '',
 }, {
     53 => 2,
-    1 => '255.255.192.0',
+    1  => '255.255.192.0',
     54 => '211.29.132.90',
     51 => 3600,
-    3 => '10.214.64.1',
-    6 => '198.142.0.51, 211.29.132.12, 198.142.235.14',
+    3  => '10.214.64.1',
+    6  => '198.142.0.51, 211.29.132.12, 198.142.235.14',
 }
 ];
 

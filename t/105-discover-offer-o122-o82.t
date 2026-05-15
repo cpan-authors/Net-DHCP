@@ -1,11 +1,9 @@
 #!/usr/bin/env perl
-
+use strict;
+use warnings;
 use Test::More tests => 40;
 use Test::Warn;
 use FindBin;
-
-use strict;
-use warnings;
 
 BEGIN { use_ok('Net::DHCP::Packet'); }
 BEGIN { use_ok('Net::DHCP::Constants'); }
@@ -18,60 +16,60 @@ my @data;
 # packet 1
 push @data, [
 {
-    htype => 1,
-    hlen => 6,
-    hops => 1,
-    xid => 190347688,
-    flags => 0,
-    ciaddr => '0.0.0.0',
-    yiaddr => '0.0.0.0',
-    siaddr => '0.0.0.0',
-    giaddr => '10.68.0.1',
-    chaddr => '200cc8e2fa3100000000000000000000',
-    sname => '',
-    file  => '',
-    isDhcp => 1,
+    htype   => 1,
+    hlen    => 6,
+    hops    => 1,
+    xid     => 190347688,
+    flags   => 0,
+    ciaddr  => '0.0.0.0',
+    yiaddr  => '0.0.0.0',
+    siaddr  => '0.0.0.0',
+    giaddr  => '10.68.0.1',
+    chaddr  => '200cc8e2fa3100000000000000000000',
+    sname   => '',
+    file    => '',
+    isDhcp  => 1,
     padding => '',
 }, {
     53 => 1,
-#    55 => 1,
-#    60 => 1,
-#    43 => 1,
-#    61 => 1,
-#    57 => 1,
-#    82 => 1,
+    # 55 => 1,
+    # 60 => 1,
+    # 43 => 1,
+    # 61 => 1,
+    # 57 => 1,
+    # 82 => 1,
 },
 ];
 
 # packet 2
 push @data, [
 {
-    htype => 1,
-    hlen => 6,
-    hops => 1,
-    xid => 190347688,
-    flags => 0,
-    ciaddr => '0.0.0.0',
-    yiaddr => '10.219.62.18',
-    siaddr => '211.29.132.141',
-    giaddr => '10.68.0.1',
-    chaddr => '200cc8e2fa3100000000000000000000',
-    sname => '',
-    file  => '',
-    isDhcp => 1,
+    htype   => 1,
+    hlen    => 6,
+    hops    => 1,
+    xid     => 190347688,
+    flags   => 0,
+    ciaddr  => '0.0.0.0',
+    yiaddr  => '10.219.62.18',
+    siaddr  => '211.29.132.141',
+    giaddr  => '10.68.0.1',
+    chaddr  => '200cc8e2fa3100000000000000000000',
+    sname   => '',
+    file    => '',
+    isDhcp  => 1,
     padding => '',
 }, {
-    53 => 2,
-    54 => '211.29.132.90',
-    51 => 3600,
-    1 => '255.255.192.0',
-    2 => 36000,
-    3 => '10.219.0.1',
-    6 => '198.142.0.51, 211.29.132.12, 198.142.235.14',
-    7 => '211.29.152.26',
-    15 => 'optusnet.com.au',
-    # 122
-    # 82
+    53  => 2,
+    54  => '211.29.132.90',
+    51  => 3600,
+    1   => '255.255.192.0',
+    2   => 36000,
+    3   => '10.219.0.1',
+    6   => '198.142.0.51, 211.29.132.12, 198.142.235.14',
+    7   => '211.29.152.26',
+    15  => 'optusnet.com.au',
+    # 122 =>
+    # 82  =>
 }
 ];
 

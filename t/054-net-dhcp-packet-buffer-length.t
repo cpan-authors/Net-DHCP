@@ -1,12 +1,10 @@
 #!/usr/bin/env perl
-
-use Test::More tests => 9;
+use strict;
+use warnings;
+use Test::More tests => 5;
 use Test::Warn;
 
 BEGIN { use_ok( 'Net::DHCP::Packet' ); }
-
-use strict;
-use warnings;
 
 my $pac = Net::DHCP::Packet->new();
 my $ref_packet = pack( 'H*',
@@ -17,25 +15,33 @@ my $ref_packet = pack( 'H*',
       . '3132333435363738393031323334353637383930313233343536373839303132'
       . '3334353637383930313233343536373839303132333435363738393031323334' );
 
-is( $pac->min_len_handling, 0, 'default' );
+subtest 'default min_len_handling (0)' => sub {
+    plan tests => 1;
+    is( $pac->min_len_handling, 0, 'default' );
+};
 
-$pac->min_len_handling(1);
+subtest 'warn level (1)' => sub {
+    plan tests => 3;
+    $pac->min_len_handling(1);
+    warnings_like {
+        ok( eval { $pac->marshall($ref_packet); 1 }, 'no exceptions' );
+    } [
+        qr/, absolute minimum size/,
+        qr/, minimum size/],
+    'warning';
+    is( $pac->min_len_handling, 1, 'warn' );
+};
 
-warnings_like {
-    ok( eval { $pac->marshall($ref_packet); 1 }, 'no exceptions' );
-} [
-    qr/, absolute minimum size/,
-    qr/, minimum size/],
-'warning';
+subtest 'ignore level (2)' => sub {
+    plan tests => 3;
+    $pac->min_len_handling(2);
+    warning_is {
+        ok( eval { $pac->marshall($ref_packet); 1 }, 'no exceptions' );
+    } undef, 'ignore';
+    is( $pac->min_len_handling, 2, 'ignore' );
+};
 
-is( $pac->min_len_handling, 1, 'warn' );
-
-$pac->min_len_handling(2);
-
-warning_is {
-    ok( eval { $pac->marshall($ref_packet); 1 }, 'no exceptions' );
-} undef, 'ignore';
-
-is( $pac->min_len_handling, 2, 'ignore' );
-
-ok( ! eval { $pac->min_len_handling(3); 1 }, 'invalid level' );
+subtest 'invalid level' => sub {
+    plan tests => 1;
+    ok( ! eval { $pac->min_len_handling(3); 1 }, 'invalid level' );
+};

@@ -1,11 +1,9 @@
 #!/usr/bin/env perl
-
+use strict;
+use warnings;
 use Test::More tests => 19;
 use Test::Warn;
 use FindBin;
-
-use strict;
-use warnings;
 
 BEGIN { use_ok('Net::DHCP::Packet'); }
 BEGIN { use_ok('Net::DHCP::Constants'); }
@@ -14,19 +12,19 @@ use Net::Frame::Simple;
 use Net::Frame::Dump::Offline;
 
 my %values = (
-    htype => 0,
-    hlen => 0,
-    hops => 1,
-    xid => 0,
-    flags => 0,
-    ciaddr =>  '114.77.17.255',
-    yiaddr => '0.0.0.0',
-    siaddr => '0.0.0.0',
-    giaddr => '10.74.0.1',
-    chaddr => 0 x 32,
-    sname => '',
-    file  => '',
-    isDhcp => 1,
+    htype   => 0,
+    hlen    => 0,
+    hops    => 1,
+    xid     => 0,
+    flags   => 0,
+    ciaddr  => '114.77.17.255',
+    yiaddr  => '0.0.0.0',
+    siaddr  => '0.0.0.0',
+    giaddr  => '10.74.0.1',
+    chaddr  => 0 x 32,
+    sname   => '',
+    file    => '',
+    isDhcp  => 1,
     padding => '',
 );
 
