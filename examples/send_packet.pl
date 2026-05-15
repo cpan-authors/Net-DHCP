@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 # Simple DHCP client - sending a broadcasted DHCP Discover request
 
 use IO::Socket::INET;

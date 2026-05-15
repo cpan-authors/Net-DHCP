@@ -1,10 +1,11 @@
-#!/usr/bin/env perl -wT
+#!/usr/bin/env perl
 
 use Test::More tests => 81;
 use Test::Warn;
 use FindBin;
 
 use strict;
+use warnings;
 
 BEGIN { use_ok('Net::DHCP::Packet'); }
 BEGIN { use_ok('Net::DHCP::Constants', ':htype_codes', ':dhcp_message',':dhcp_hashes' ); }
