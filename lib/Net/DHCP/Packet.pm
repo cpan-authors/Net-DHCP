@@ -72,35 +72,40 @@ sub new {
     };
 
     bless $self, $class;
-    if ( scalar @_ == 1 ) {     # we build the packet from a binary string
+
+    # single argument means deserialize from binary packet buffer
+    if (scalar @_ == 1) {
         $self->marshall(shift);
+        return $self;
     }
-    else {
 
-        my %args         = @_;
-        my @ordered_args = @_;
-
-        for my $k (sort keys %args) { # keep the processing order consistent
-
-            next if $k =~ m/^\d+$/; # ignore numbered args
-
-            if ($newargs{$k}) {
-                $newargs{$k}->($self, $args{$k});
-                next
-            }
-
-            carp sprintf 'Ingoring unknown new() argument: %s', $k;
-
+    # split args into attribute pairs (named keys) and option pairs (numeric codes)
+    # so we can sort attributes while preserving option insertion order
+    my @attr_pairs;
+    my @opt_pairs;
+    while (my ($k, $v) = splice @_, 0, 2) {
+        if ($k =~ m/^[0-9]+$/) {
+            push @opt_pairs, [$k, $v];
         }
-
-        # TBM add DHCP option parsing
-        while ( defined( my $key = shift @ordered_args ) ) {
-
-            my $value = shift @ordered_args;
-            if ($key =~ m/^\d+$/) {
-                $self->addOptionValue( $key, $value );
-            }
+        else {
+            push @attr_pairs, [$k, $v];
         }
+    }
+
+    # process named attributes in sorted order for consistency
+    for my $pair (sort { $a->[0] cmp $b->[0] } @attr_pairs) {
+        my ($k, $v) = @$pair;
+        if ($newargs{$k}) {
+            $newargs{$k}->($self, $v);
+        }
+        else {
+            carp sprintf('Ignoring unknown new() argument: %s', $k);
+        }
+    }
+
+    # process DHCP options in original order (matters for picky clients)
+    for my $pair (@opt_pairs) {
+        $self->addOptionValue($pair->[0], $pair->[1]);
     }
 
     return $self
