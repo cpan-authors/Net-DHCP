@@ -2,13 +2,13 @@
 use strict;
 use warnings;
 use Test::More tests => 81;
-use Test::Warn;
-use FindBin;
+use Test::Warn qw( warning_like );
+use FindBin ();
 
 BEGIN { use_ok('Net::DHCP::Packet'); }
 BEGIN { use_ok('Net::DHCP::Constants', ':htype_codes', ':dhcp_message',':dhcp_hashes' ); }
 
-use Net::Frame::Simple;
+use Net::Frame::Simple ();
 use Net::Frame::Dump::Offline;
 
 my @data;
