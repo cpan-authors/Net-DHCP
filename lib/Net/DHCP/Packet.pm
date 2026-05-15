@@ -312,7 +312,7 @@ sub getOptionValue {
     my $format = $DHO_FORMATS{$code};
     my $subcodes;
 
-    if ($format eq 'suboptions') {
+    if (defined $format && $format eq 'suboptions') {
         $subcodes = $REV_SUBOPTION_CODES{$code} || {}
     }
 
@@ -345,7 +345,7 @@ sub getOptionValue {
     #    # TBM, bad format
 
     # decode the options if we know the format
-    if ($options{$format}) {
+    if (defined $format && $options{$format}) {
         $value_bin = join(q|, |,
         map { ref $_ ? sprintf '%s => %s', $subcodes->{$_->[0]} || $_->[0],
             do { my $v = $_->[1]; if ($v =~ m/[ ,"]/) { $v =~ s/\\/\\\\/g; $v =~ s/"/\\"/g } $v = _printable($v); $v = qq("$v") if $v =~ m/[ ,"]/; $v } : $_ }
