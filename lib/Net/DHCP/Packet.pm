@@ -19,7 +19,8 @@ use Net::DHCP::Constants qw(
 );
 use Net::DHCP::Packet::Attributes qw(:all);
 use Net::DHCP::Packet::IPv4Utils qw(:all);
-use List::Util qw(any first);
+use Net::DHCP::Packet::OrderOptions qw( reorder_options );
+use List::Util qw(any first none);
 
 #=======================================================================
 
@@ -121,13 +122,11 @@ sub new {
 }
 
 sub addOptionRaw {
-    my ( $self, $key, $value_bin, $sort ) = @_;
+    my ( $self, $key, $value_bin ) = @_;
     $self->{options}->{$key} = $value_bin;
-    push @{ $self->{options_order} }, $key;
-
-    return 1 if $sort;
-
-#FIXME    @{ $self->{options_order} } = sort optionsorder @{ $self->{options_order} };
+    if ( none { $_ == $key } @{ $self->{options_order} } ) {
+        push @{ $self->{options_order} }, $key;
+    }
 
     return 1
 }
@@ -208,7 +207,7 @@ sub addSubOptionRaw {
     my ( $self, $key, $subkey, $value_bin ) = @_;
     $self->{options}->{$key}->{$subkey} = $value_bin;
 
-    if ( !grep( /$key/, @{$self->{options_order}} ) ) {
+    if ( none { $_ == $key } @{$self->{options_order}} ) {
         push @{ $self->{options_order} }, $key;
     }
     push @{ $self->{sub_options_order}{$key} }, ($subkey);
@@ -449,7 +448,7 @@ sub serialize {
 
     if ( $self->{isDhcp} ) {    # add MAGIC_COOKIE and options
         $bytes .= MAGIC_COOKIE();
-        for my $key ( @{ $self->{options_order} } ) {
+        for my $key ( reorder_options( @{ $self->{options_order} } ) ) {
             if ( ref($self->{options}->{$key}) eq 'ARRAY' ) {
                 for my $value ( @{$self->{options}->{$key}} ) {
                     $bytes .= pack( 'C',    $key );
@@ -589,7 +588,7 @@ sub marshall {
             my $len = ord( substr( $opt_buf, $pos++, 1 ) ); # FIXME sanity check length
             my $option = substr( $opt_buf, $pos, $len );
             $pos += $len;
-            $self->addOptionRaw( $type, $option, 1 );
+            $self->addOptionRaw( $type, $option );
 
         }
 
@@ -1038,14 +1037,10 @@ Return value is either a string or an array, depending on the context.
   $ip  = $pac->getOptionValue(DHO_SUBNET_MASK());
   $ips = $pac->getOptionValue(DHO_NAME_SERVERS());
 
-=item addOptionRaw ( CODE, VALUE, BOOLEAN )
+=item addOptionRaw ( CODE, VALUE )
 
 Adds a DHCP OPTION provided in packed binary format.
 Please see corresponding RFC for manual type conversion.
-
-BOOLEAN indicates if options should be inserted in the order provided.
-Default is to sort options to work around known quirky clients.
-See L<QUIRK WORK-AROUNDS>
 
 =item addSubOptionRaw ( CODE, SUBCODE, VALUE )
 
@@ -1442,7 +1437,7 @@ this server.
 
 =head1 SEE ALSO
 
-L<Net::DHCP::Options>, L<Net::DHCP::Constants>, L<Net::DHCP::IPv4Utils>,
-L<Net::DHCP::Attributes>, L<Net::DHCP::OrderOptions>.
+L<Net::DHCP::Constants>, L<Net::DHCP::Packet::IPv4Utils>,
+L<Net::DHCP::Packet::Attributes>, L<Net::DHCP::Packet::OrderOptions>.
 
 =cut
