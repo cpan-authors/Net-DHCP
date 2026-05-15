@@ -9,12 +9,8 @@ use 5.8.0;
 
 package Net::DHCP::Packet::IPv4Utils;
 
-# standard module declaration
-our ( @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS );
-use Exporter;
-@ISA       = qw(Exporter);
-@EXPORT    = qw( );
-@EXPORT_OK = qw(
+use Exporter 'import';
+our @EXPORT_OK = qw(
     byte_len
     packinet
     packinets
@@ -23,7 +19,7 @@ use Exporter;
     unpackinets
     unpackinets_array
 );
-%EXPORT_TAGS = ( all => \@EXPORT_OK );
+our %EXPORT_TAGS = ( all => \@EXPORT_OK );
 
 use Carp;
 

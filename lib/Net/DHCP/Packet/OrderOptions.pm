@@ -7,12 +7,9 @@ use 5.8.0;
 
 package Net::DHCP::Packet::OrderOptions;
 
-our ( @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS );
-use Exporter;
-@ISA       = qw(Exporter);
-@EXPORT    = qw( );
-@EXPORT_OK = qw( reorder_options );
-%EXPORT_TAGS = ( all => \@EXPORT_OK );
+use Exporter 'import';
+our @EXPORT_OK = qw( reorder_options );
+our %EXPORT_TAGS = ( all => \@EXPORT_OK );
 
 #=======================================================================
 sub reorder_options {
