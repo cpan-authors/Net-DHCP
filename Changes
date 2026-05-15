@@ -1,5 +1,27 @@
 Net::DHCP - A DHCP packet object
 
+0.8      2026-05-15
+	- Refactor constructor: single-pass split, m/[0-9]/, condensed carp
+	- Use eq instead of == in removeOption for safer key comparison
+	- Add byte_len helper to scope 'use bytes' to a single sub
+	- Implement getSubOptionValue, removeSubOption stubs, refactor toString
+	- Replace OrderOptions stub with reorder_options() quirk handler
+	- Standardize shebangs to /usr/bin/env perl, add use warnings to test files
+	- Clean up test pragma ordering (use strict before use warnings)
+	- Add subtests to packinet and buffer-length tests
+	- Align fat commas in 102-107 test data hashes
+	- Add POD docs for byte_len to fix pod-coverage test
+	- Modernize Exporter usage: use Exporter 'import' instead of @ISA inheritance
+	- Explicit import lists from perlimports, drop unused imports
+	- Add perl minimum version and fix up perlcritic testing
+	- Add DHO_CCC parens for consistency in %DHO_FORMATS
+	- Correct typos in POD and comments
+	- Fix broken POD internal links for release
+	- Add length bounds checks in marshall and unpacksuboptions
+	- Use _printable in suboption formatting, quote if value contains spaces/commas
+	- Fix uninitialized $format warnings in getOptionValue for unknown codes
+	- Make uninitialized warnings fatal across all modules
+
 0.7      2022-06-22
  	- Increase minimum perl to 5.12 to ensure Socket is new enough for Net::Frame
 	- Update Changes to provide more details
