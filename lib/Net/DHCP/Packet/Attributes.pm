@@ -268,7 +268,7 @@ Sets/gets the I<client IP address>.
 IP address is only accepted as a string like '10.24.50.3'.
 
 Note: IP address is internally stored as a 4 bytes binary string.
-See L<Special methods> below.
+See L<SPECIAL METHODS> below.
 
 =item yiaddr ( [STRING] )
 
@@ -277,7 +277,7 @@ Sets/gets the I<your IP address>.
 IP address is only accepted as a string like '10.24.50.3'.
 
 Note: IP address is internally stored as a 4 bytes binary string.
-See L<Special methods> below.
+See L<SPECIAL METHODS> below.
 
 =item siaddr ( [STRING] )
 
@@ -286,7 +286,7 @@ Sets/gets the I<next server IP address>.
 IP address is only accepted as a string like '10.24.50.3'.
 
 Note: IP address is internally stored as a 4 bytes binary string.
-See L<Special methods> below.
+See L<SPECIAL METHODS> below.
 
 =item giaddr ( [STRING] )
 
@@ -295,7 +295,7 @@ Sets/gets the I<relay agent IP address>.
 IP address is only accepted as a string like '10.24.50.3'.
 
 Note: IP address is internally stored as a 4 bytes binary string.
-See L<Special methods> below.
+See L<SPECIAL METHODS> below.
 
 =item chaddr ( [STRING] )
 
@@ -306,7 +306,7 @@ Value is formatted as an Hexadecimal string representation.
   Example: "0010A706DFFF" for 6 bytes mac address.
 
 Note : internal format is packed bytes string.
-See L<Special methods> below.
+See L<SPECIAL METHODS> below.
 
 =item sname ( [STRING] )
 

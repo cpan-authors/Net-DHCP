@@ -980,7 +980,7 @@ in two flavours : (i) text format with automatic type conversion,
 (ii) raw binary format.
 
 Standard way of accessing options is through automatic type conversion,
-described in the L<DHCP OPTION TYPES> section. Only a subset of types
+described in the L<DHCP OPTIONS TYPES> section. Only a subset of types
 is supported, mainly those defined in rfc 2132.
 
 Raw binary functions are provided for pure performance optimization,
@@ -995,7 +995,7 @@ C<Net::DHCP::Constants> C<DHO_>*.
 
 Values are automatically converted according to their data types,
 depending on their format as defined by RFC 2132.
-Please see L<DHCP OPTION TYPES> for supported options and corresponding
+Please see L<DHCP OPTIONS TYPES> for supported options and corresponding
 formats.
 
 If you need access to the raw binary values, please use C<addOptionRaw()>.
@@ -1011,7 +1011,7 @@ C<Net::DHCP::Constants> C<SUBOPTION_>*.
 
 Values are automatically converted according to their data types,
 depending on their format as defined by RFC 2132.
-Please see L<DHCP OPTION TYPES> for supported options and corresponding
+Please see L<DHCP OPTIONS TYPES> for supported options and corresponding
 formats.
 
 If you need access to the raw binary values, please use C<addSubOptionRaw()>.
@@ -1028,7 +1028,7 @@ Returns the value of a DHCP option.
 
 Automatic type conversion is done according to their data types,
 as defined in RFC 2132.
-Please see L<DHCP OPTION TYPES> for supported options and corresponding
+Please see L<DHCP OPTIONS TYPES> for supported options and corresponding
 formats.
 
 If you need access to the raw binary values, please use C<getOptionRaw()>.
