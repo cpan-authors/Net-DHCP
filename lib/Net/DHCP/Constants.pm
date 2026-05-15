@@ -460,7 +460,7 @@ our %DHO_FORMATS = (
 
     DHO_SIP_SERVERS()                 => 'sipserv',
     DHO_CLASSLESS_STATIC_ROUTE()      => 'csr',        # rfc 3442
-    DHO_CCC                           => 'suboptions', # 122
+    DHO_CCC()                         => 'suboptions', # 122
 
     # While not perfect, usage is primarily as a string.  iPXE is
     # a common use case for this option.
