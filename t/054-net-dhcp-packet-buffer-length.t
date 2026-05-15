@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 use Test::More tests => 5;
-use Test::Warn;
+use Test::Warn qw( warning_is warnings_like );
 
 BEGIN { use_ok( 'Net::DHCP::Packet' ); }
 

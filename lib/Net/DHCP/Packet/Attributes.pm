@@ -17,7 +17,7 @@ our @EXPORT_OK = qw(
 );
 our %EXPORT_TAGS = ( all => \@EXPORT_OK );
 
-use Carp qw/ carp /;
+use Carp qw( carp );
 use Net::DHCP::Packet::IPv4Utils qw( packinet unpackinet byte_len );
 
 #=======================================================================

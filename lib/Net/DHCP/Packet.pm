@@ -9,7 +9,7 @@ use 5.8.0;
 
 package Net::DHCP::Packet;
 
-use Carp;
+use Carp qw( carp croak );
 use Net::DHCP::Constants qw(
     :DEFAULT
     :dhcp_hashes
@@ -21,6 +21,7 @@ use Net::DHCP::Packet::Attributes qw(:all);
 use Net::DHCP::Packet::IPv4Utils qw(:all);
 use Net::DHCP::Packet::OrderOptions qw( reorder_options );
 use List::Util qw(any first none);
+
 
 #=======================================================================
 

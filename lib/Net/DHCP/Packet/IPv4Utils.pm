@@ -21,8 +21,6 @@ our @EXPORT_OK = qw(
 );
 our %EXPORT_TAGS = ( all => \@EXPORT_OK );
 
-use Carp;
-
 #=======================================================================
 # byte-length helper — contains the use bytes pragma in one place
 sub byte_len {
