@@ -407,10 +407,6 @@ sub removeOption {
         my $i =
           first { $self->{options_order}->[$_] == $key }
         0 .. $#{ $self->{options_order} };
-
-        #        for ( $i = 0 ; $i < @{ $self->{options_order} } ; $i++ ) {
-        #            last if ( $self->{options_order}->[$i] == $key );
-        #        }
         if ( $i < @{ $self->{options_order} } ) {
             splice @{ $self->{options_order} }, $i, 1;
         }
