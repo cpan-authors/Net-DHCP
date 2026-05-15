@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/env perl
 
 use Test::More tests => 9;
 use Test::Warn;
@@ -6,6 +6,7 @@ use Test::Warn;
 BEGIN { use_ok( 'Net::DHCP::Packet' ); }
 
 use strict;
+use warnings;
 
 my $pac = Net::DHCP::Packet->new();
 my $ref_packet = pack( 'H*',

@@ -1,4 +1,4 @@
-#!/usr/bin/env perl -wT
+#!/usr/bin/env perl
 
 use Test::More tests => 33;
 use Test::Warn;
@@ -7,6 +7,7 @@ BEGIN { use_ok('Net::DHCP::Packet'); }
 BEGIN { use_ok('Net::DHCP::Constants'); }
 
 use strict;
+use warnings;
 my $str200 = '1234567890' x 20;
 my $pac;
 

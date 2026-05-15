@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 # Simple DHCP client - send a LeaseQuery (by IP) and receive the response
 
 use IO::Socket::INET;

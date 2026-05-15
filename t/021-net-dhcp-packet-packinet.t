@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/env perl
 
 use Test::More tests => 39;
 
@@ -6,6 +6,7 @@ BEGIN { use_ok( 'Net::DHCP::Packet::IPv4Utils', ':all' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants' ); }
 
 use strict;
+use warnings;
 
 my $pac1 = "\0\0\0\0";
 my $pac2 = "\1\2\3\4";
