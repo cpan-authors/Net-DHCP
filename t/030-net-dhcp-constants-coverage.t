@@ -1,14 +1,12 @@
 #!/usr/bin/env perl
-
+use strict;
+use warnings;
 use Test::More tests => 207;
 
 BEGIN { use_ok('Net::DHCP::Constants'); }
 
 use Net::DHCP::Constants
   qw(%DHO_CODES %DHCP_MESSAGE %NWIP_CODES %CCC_CODES %GEOCONF_CODES %RELAYAGENT_CODES);
-
-use strict;
-use warnings;
 
 # load in the iana definitions
 my %iana;

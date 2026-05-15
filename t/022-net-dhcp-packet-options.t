@@ -1,13 +1,12 @@
 #!/usr/bin/env perl
 
+use strict;
+use warnings;
 use Test::More tests => 63;
 
 BEGIN { use_ok( 'Net::DHCP::Packet' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants', ':ra_codes' ); }
-
-use strict;
-use warnings;
 
 my $ip0 = '0.0.0.0';
 my $pac0 = '\0\0\0\0';

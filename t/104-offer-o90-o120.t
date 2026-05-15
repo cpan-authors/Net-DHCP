@@ -1,11 +1,9 @@
 #!/usr/bin/env perl
-
+use strict;
+use warnings;
 use Test::More tests => 25;
 use Test::Warn;
 use FindBin;
-
-use strict;
-use warnings;
 
 BEGIN { use_ok('Net::DHCP::Packet'); }
 BEGIN { use_ok('Net::DHCP::Constants'); }
@@ -14,34 +12,34 @@ use Net::Frame::Simple;
 use Net::Frame::Dump::Offline;
 
 my %values = (
-    htype => 1,
-    hlen => 6,
-    hops => 1,
-    xid => 2003947397,
-    flags => 0,
-    ciaddr => '0.0.0.0',
-    yiaddr => '10.10.8.235',
-    siaddr => '172.22.178.234',
-    giaddr => '10.10.8.240',
-    chaddr => '000e8611c07500000000000000000000',
-    sname => '',
-    file  => '',
-    isDhcp => 1,
+    htype   => 1,
+    hlen    => 6,
+    hops    => 1,
+    xid     => 2003947397,
+    flags   => 0,
+    ciaddr  => '0.0.0.0',
+    yiaddr  => '10.10.8.235',
+    siaddr  => '172.22.178.234',
+    giaddr  => '10.10.8.240',
+    chaddr  => '000e8611c07500000000000000000000',
+    sname   => '',
+    file    => '',
+    isDhcp  => 1,
     padding => '',
 );
 
 my %options = (
-    53 => 2,
-    1 => '255.255.255.0',
-    54 => '172.22.178.234',
-    51 => 43200,
-    3 => '10.10.8.254',
-    6 => '143.209.4.1, 143.209.5.1',
-    66 => '172.22.178.234',
+    53  => 2,
+    1   => '255.255.255.0',
+    54  => '172.22.178.234',
+    51  => 43200,
+    3   => '10.10.8.254',
+    6   => '143.209.4.1, 143.209.5.1',
+    66  => '172.22.178.234',
     120 => '172.22.178.234',
-    61 =>  'nathan1clientid',
-    # 90 => auth
-    # 82 => agent
+    61  => 'nathan1clientid',
+    # 90  => auth
+    # 82  => agent
 );
 
 #

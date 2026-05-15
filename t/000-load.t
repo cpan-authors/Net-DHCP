@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
-use warnings;
 use strict;
+use warnings;
 use Test::More tests => 2;
 
 BEGIN { use_ok( 'Net::DHCP::Packet' ) or BAIL_OUT('unable to load module') }
