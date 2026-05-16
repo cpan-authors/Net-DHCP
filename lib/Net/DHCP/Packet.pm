@@ -222,7 +222,6 @@ sub addSubOptionValue {
     my $value   = shift;
     # my $value_bin;          # option value in binary format
 
-    # FIXME
     carp("addSubOptionValue: unknown format for code ($code)")
       unless exists $DHO_FORMATS{$code};
 
@@ -348,8 +347,8 @@ sub getOptionValue {
     # decode the options if we know the format
     if ($options{$format}) {
         $value_bin = join(q|, |,
-        map { ref $_ ? sprintf '%s => %s', $subcodes->{$_->[0]} || $_->[0], # FIXME needs to guess if hex or ascii, quote if whitespace padding
-            unpack('a*',$_->[1]) : $_ }
+        map { ref $_ ? sprintf '%s => %s', $subcodes->{$_->[0]} || $_->[0],
+            do { my $v = $_->[1]; if ($v =~ m/[ ,"]/) { $v =~ s/\\/\\\\/g; $v =~ s/"/\\"/g } $v = _printable($v); $v = qq("$v") if $v =~ m/[ ,"]/; $v } : $_ }
         ( $options{$format}->($value_bin) ))
     }
 
@@ -1017,9 +1016,8 @@ formats.
 If you need access to the raw binary values, please use C<addSubOptionRaw()>.
 
    $pac = Net::DHCP::Packet->new();
-   # FIXME update examples
-   $pac->addSubOption(DHO_DHCP_MESSAGE_TYPE(), DHCPINFORM());
-   $pac->addSubOption(DHO_NAME_SERVERS(), "10.0.0.1", "10.0.0.2"));
+   $pac->addSubOptionValue(DHO_DHCP_AGENT_OPTIONS(), RAI_CIRCUIT_ID(), "my-circuit-id");
+   $pac->addSubOptionValue(DHO_DHCP_AGENT_OPTIONS(), RAI_REMOTE_ID(), "my-remote-id");
 
 
 =item getOptionValue ( CODE )
