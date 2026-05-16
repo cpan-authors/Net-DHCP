@@ -5,7 +5,7 @@ use Test::More tests => 4;
 use FindBin ();
 
 BEGIN { use_ok('Net::DHCP::Packet'); }
-BEGIN { use_ok('Net::DHCP::Constants'); }
+BEGIN { use_ok('Net::DHCP::Constants', ':bootp_codes'); }
 
 use Net::Frame::Simple ();
 use Net::Frame::Dump::Offline;
@@ -16,10 +16,12 @@ my @data;
 push @data, [
     'DISCOVER',
     {
+        op      => BOOTREQUEST,
         htype   => 1,
         hlen    => 6,
         hops    => 1,
         xid     => 2011560758,
+        secs    => 63,
         flags   => 0,
         ciaddr  => '0.0.0.0',
         yiaddr  => '0.0.0.0',
@@ -32,6 +34,8 @@ push @data, [
         padding => '',
     }, {
         53 => 1,
+        57 => 1500,
+        55 => '1, 2, 3, 6, 7, 12, 15, 54, 122',
     },
 ];
 
@@ -39,10 +43,12 @@ push @data, [
 push @data, [
     'OFFER',
     {
+        op      => BOOTREPLY,
         htype   => 1,
         hlen    => 6,
         hops    => 1,
         xid     => 2011560758,
+        secs    => 63,
         flags   => 0,
         ciaddr  => '0.0.0.0',
         yiaddr  => '10.214.98.138',
@@ -55,11 +61,14 @@ push @data, [
         padding => '',
     }, {
         53 => 2,
-        1  => '255.255.192.0',
-        54 => '211.29.132.90',
+         1  => '255.255.192.0',
+         2  => 36000,
+         3  => '10.214.64.1',
+         6  => '198.142.0.51, 211.29.132.12, 198.142.235.14',
+         7  => '211.29.152.26',
+        15  => 'optusnet.com.au',
         51 => 3600,
-        3  => '10.214.64.1',
-        6  => '198.142.0.51, 211.29.132.12, 198.142.235.14',
+        54 => '211.29.132.90',
     }
 ];
 

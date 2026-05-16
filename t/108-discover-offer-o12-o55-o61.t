@@ -5,7 +5,7 @@ use Test::More tests => 6;
 use FindBin ();
 
 BEGIN { use_ok('Net::DHCP::Packet'); }
-BEGIN { use_ok('Net::DHCP::Constants'); }
+BEGIN { use_ok('Net::DHCP::Constants', ':bootp_codes'); }
 
 use Net::Frame::Simple ();
 use Net::Frame::Dump::Offline;
@@ -16,10 +16,12 @@ my @data;
 push @data, [
     'DISCOVER',
     {
+        op      => BOOTREQUEST,
         htype   => 1,
         hlen    => 6,
         hops    => 1,
         xid     => 9179,
+        secs    => 0,
         flags   => 32768,
         ciaddr  => '0.0.0.0',
         yiaddr  => '0.0.0.0',
@@ -42,10 +44,12 @@ push @data, [
 push @data, [
     'OFFER',
     {
+        op      => BOOTREPLY,
         htype   => 1,
         hlen    => 6,
         hops    => 0,
         xid     => 9179,
+        secs    => 0,
         flags   => 32768,
         ciaddr  => '0.0.0.0',
         yiaddr  => '192.168.1.3',
@@ -72,10 +76,12 @@ push @data, [
 push @data, [
     'REQUEST',
     {
+        op      => BOOTREQUEST,
         htype   => 1,
         hlen    => 6,
         hops    => 1,
         xid     => 9179,
+        secs    => 0,
         flags   => 32768,
         ciaddr  => '0.0.0.0',
         yiaddr  => '0.0.0.0',
@@ -101,10 +107,12 @@ push @data, [
 push @data, [
     'ACK',
     {
+        op      => BOOTREPLY,
         htype   => 1,
         hlen    => 6,
         hops    => 0,
         xid     => 9179,
+        secs    => 0,
         flags   => 32768,
         ciaddr  => '0.0.0.0',
         yiaddr  => '192.168.1.3',

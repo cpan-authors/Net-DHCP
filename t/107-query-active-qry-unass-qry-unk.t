@@ -6,7 +6,7 @@ use Test::Warn qw( warning_like );
 use FindBin ();
 
 BEGIN { use_ok('Net::DHCP::Packet'); }
-BEGIN { use_ok('Net::DHCP::Constants'); }
+BEGIN { use_ok('Net::DHCP::Constants', ':bootp_codes'); }
 
 use Net::Frame::Simple ();
 use Net::Frame::Dump::Offline;
@@ -17,10 +17,12 @@ my @data;
 push @data, [
     'DHCPINFORM (3788063565)',
     {
+        op      => BOOTREQUEST,
         htype   => 0,
         hlen    => 0,
         hops    => 0,
         xid     => '3788063565',
+        secs    => 0,
         flags   => 0,
         ciaddr  => '1.1.1.2',
         yiaddr  => '0.0.0.0',
@@ -36,14 +38,16 @@ push @data, [
     },
 ];
 
-# packet 2 — DHCPLEASEUNASSIGNED
+# packet 2 — DHCPLEASEACTIVE
 push @data, [
-    'DHCPLEASEUNASSIGNED',
+    'DHCPLEASEACTIVE',
     {
+        op      => BOOTREPLY,
         htype   => 1,
         hlen    => 6,
         hops    => 0,
         xid     => '3788063565',
+        secs    => 0,
         flags   => 0,
         ciaddr  => '1.1.1.2',
         yiaddr  => '0.0.0.0',
@@ -63,10 +67,12 @@ push @data, [
 push @data, [
     'DHCPINFORM (3804840781)',
     {
+        op      => BOOTREQUEST,
         htype   => 0,
         hlen    => 0,
         hops    => 0,
         xid     => '3804840781',
+        secs    => 0,
         flags   => 0,
         ciaddr  => '1.1.1.3',
         yiaddr  => '0.0.0.0',
@@ -82,14 +88,16 @@ push @data, [
     }
 ];
 
-# packet 4 — DHCPLEASEACTIVE
+# packet 4 — DHCPLEASEUNASSIGNED
 push @data, [
-    'DHCPLEASEACTIVE',
+    'DHCPLEASEUNASSIGNED',
     {
+        op      => BOOTREPLY,
         htype   => 0,
         hlen    => 0,
         hops    => 0,
         xid     => '3804840781',
+        secs    => 0,
         flags   => 0,
         ciaddr  => '1.1.1.3',
         yiaddr  => '0.0.0.0',
@@ -109,10 +117,12 @@ push @data, [
 push @data, [
     'DHCPINFORM (3821617997)',
     {
+        op      => BOOTREQUEST,
         htype   => 0,
         hlen    => 0,
         hops    => 0,
         xid     => '3821617997',
+        secs    => 0,
         flags   => 0,
         ciaddr  => '1.1.1.11',
         yiaddr  => '0.0.0.0',
@@ -132,10 +142,12 @@ push @data, [
 push @data, [
     'DHCPLEASEUNKNOWN',
     {
+        op      => BOOTREPLY,
         htype   => 0,
         hlen    => 0,
         hops    => 0,
         xid     => '3821617997',
+        secs    => 0,
         flags   => 0,
         ciaddr  => '1.1.1.11',
         yiaddr  => '0.0.0.0',
