@@ -4,7 +4,7 @@
 # Original Author: F. van Dun, S. Hadinger
 # ABSTRACT: Attribute methods for Net::DHCP::Packet
 use strict;
-use warnings;
+use warnings FATAL => 'uninitialized';
 use 5.8.0;
 
 package Net::DHCP::Packet::Attributes;

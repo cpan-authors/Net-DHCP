@@ -4,7 +4,7 @@
 # Original Author: F. van Dun, S. Hadinger
 # ABSTRACT: Object methods to create a DHCP packet.
 use strict;
-use warnings;
+use warnings FATAL => 'uninitialized';
 use 5.8.0;
 
 package Net::DHCP::Packet;
@@ -86,6 +86,8 @@ sub new {
         $self->marshall(shift);
         return $self;
     }
+
+    croak("new: odd number of arguments") if @_ % 2;
 
     # split args into attribute pairs (named keys) and option pairs (numeric codes)
     # so we can sort attributes while preserving option insertion order
@@ -408,7 +410,7 @@ sub removeOption {
         my $i =
           first { $self->{options_order}->[$_] == $key }
         0 .. $#{ $self->{options_order} };
-        if ( $i < @{ $self->{options_order} } ) {
+        if ( defined $i && $i < @{ $self->{options_order} } ) {
             splice @{ $self->{options_order} }, $i, 1;
         }
         delete( $self->{options}->{$key} );

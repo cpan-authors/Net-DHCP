@@ -2,7 +2,7 @@
 # ABSTRACT: Object methods to create a DHCP packet
 # PODNAME: Net::DHCP
 use strict;
-use warnings;
+use warnings FATAL => 'uninitialized';
 use 5.8.0;
 
 package Net::DHCP;
