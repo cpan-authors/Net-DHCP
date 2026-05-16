@@ -40,7 +40,7 @@ sub reorder_options {
 
 =head1 SYNOPSIS
 
-   use Net::DHCP::Packet::OrderOptions qw( reorder_options );
+    use Net::DHCP::Packet::OrderOptions qw( reorder_options );
 
 =head1 DESCRIPTION
 
@@ -67,7 +67,7 @@ Wants option 82 (Relay agent information) to always be last.
 
 =over 4
 
-=item reorder_options ( LIST )
+=item reorder_options( LIST )
 
 Accepts a list of option-code numbers, returns them reordered to
 satisfy known client quirks.  Codes not mentioned in any quirk keep

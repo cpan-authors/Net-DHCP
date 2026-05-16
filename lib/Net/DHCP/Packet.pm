@@ -873,9 +873,9 @@ sub unpackcsr {
 
 =head1 SYNOPSIS
 
-   use Net::DHCP::Packet;
+    use Net::DHCP::Packet;
 
-   my $p = Net::DHCP::Packet->new(
+    my $p = Net::DHCP::Packet->new(
 
         'Chaddr' => '000BCDEF',
         'Xid' => 0x9F0FD,
@@ -891,12 +891,11 @@ Represents a DHCP packet as specified in RFC 1533, RFC 2132.
 
 =head1 CONSTRUCTOR
 
-This module only provides basic constructor. For "easy" constructors, you can use
-the L<Net::DHCP::Session> module.
+Create a new C<Net::DHCP::Packet> object from a raw buffer, a set of named arguments, or with no arguments for defaults.
 
 =over 4
 
-=item new( )
+=item new()
 
 =item new( BUFFER )
 
@@ -907,22 +906,22 @@ DHCP network packets. BOOTP is not supported.
 
 Without argument, a default empty packet is created.
 
-  $packet = Net::DHCP::Packet();
+    $packet = Net::DHCP::Packet();
 
 A C<BUFFER> argument is interpreted as a binary buffer like one provided
 by the socket C<recv()> function. if the packet is malformed, a fatal error
 is issued.
 
-   use IO::Socket::INET;
-   use Net::DHCP::Packet;
+    use IO::Socket::INET;
+    use Net::DHCP::Packet;
 
-   $sock = IO::Socket::INET->new(LocalPort => 67, Proto => "udp", Broadcast => 1)
-           or die "socket: $@";
+    $sock = IO::Socket::INET->new(LocalPort => 67, Proto => "udp", Broadcast => 1)
+            or die "socket: $@";
 
-   while ($sock->recv($newmsg, 1024)) {
-       $packet = Net::DHCP::Packet->new($newmsg);
-       print $packet->toString();
-   }
+    while ($sock->recv($newmsg, 1024)) {
+        $packet = Net::DHCP::Packet->new($newmsg);
+        print $packet->toString();
+    }
 
 To create a fresh new packet C<new()> takes arguments as a key-value pairs :
 
@@ -993,7 +992,7 @@ and for unsupported types manipulation.
 
 =over 4
 
-=item addOptionValue ( CODE, VALUE )
+=item addOptionValue( CODE, VALUE )
 
 Adds a DHCP option field. Common code values are listed in
 C<Net::DHCP::Constants> C<DHO_>*.
@@ -1005,11 +1004,11 @@ formats.
 
 If you need access to the raw binary values, please use C<addOptionRaw()>.
 
-   $pac = Net::DHCP::Packet->new();
-   $pac->addOption(DHO_DHCP_MESSAGE_TYPE(), DHCPINFORM());
-   $pac->addOption(DHO_NAME_SERVERS(), "10.0.0.1", "10.0.0.2"));
+    $pac = Net::DHCP::Packet->new();
+    $pac->addOption(DHO_DHCP_MESSAGE_TYPE(), DHCPINFORM());
+    $pac->addOption(DHO_NAME_SERVERS(), "10.0.0.1", "10.0.0.2"));
 
-=item addSubOptionValue ( CODE, SUBCODE, VALUE )
+=item addSubOptionValue( CODE, SUBCODE, VALUE )
 
 Adds a DHCP sub-option field. Common code values are listed in
 C<Net::DHCP::Constants> C<SUBOPTION_>*.
@@ -1021,12 +1020,19 @@ formats.
 
 If you need access to the raw binary values, please use C<addSubOptionRaw()>.
 
-   $pac = Net::DHCP::Packet->new();
-   $pac->addSubOptionValue(DHO_DHCP_AGENT_OPTIONS(), RAI_CIRCUIT_ID(), "my-circuit-id");
-   $pac->addSubOptionValue(DHO_DHCP_AGENT_OPTIONS(), RAI_REMOTE_ID(), "my-remote-id");
+    $pac = Net::DHCP::Packet->new();
+    $pac->addSubOptionValue(
+        DHO_DHCP_AGENT_OPTIONS(),
+        RAI_CIRCUIT_ID(),
+        "my-circuit-id"
+    );
+    $pac->addSubOptionValue(
+        DHO_DHCP_AGENT_OPTIONS(),
+        RAI_REMOTE_ID(),
+        "my-remote-id"
+    );
 
-
-=item getOptionValue ( CODE )
+=item getOptionValue( CODE )
 
 Returns the value of a DHCP option.
 
@@ -1039,38 +1045,38 @@ If you need access to the raw binary values, please use C<getOptionRaw()>.
 
 Return value is either a string or an array, depending on the context.
 
-  $ip  = $pac->getOptionValue(DHO_SUBNET_MASK());
-  $ips = $pac->getOptionValue(DHO_NAME_SERVERS());
+    $ip  = $pac->getOptionValue(DHO_SUBNET_MASK());
+    $ips = $pac->getOptionValue(DHO_NAME_SERVERS());
 
-=item addOptionRaw ( CODE, VALUE )
+=item addOptionRaw( CODE, VALUE )
 
 Adds a DHCP OPTION provided in packed binary format.
 Please see corresponding RFC for manual type conversion.
 
-=item addSubOptionRaw ( CODE, SUBCODE, VALUE )
+=item addSubOptionRaw( CODE, SUBCODE, VALUE )
 
 Adds a DHCP SUB-OPTION provided in packed binary format.
 Please see corresponding RFC for manual type conversion.
 
-=item getOptionRaw ( CODE )
+=item getOptionRaw( CODE )
 
 Gets a DHCP OPTION provided in packed binary format.
 Please see corresponding RFC for manual type conversion.
 
-=item getSubOptionRaw ( CODE, SUBCODE )
+=item getSubOptionRaw( CODE, SUBCODE )
 
 Gets a DHCP SUB-OPTION provided in packed binary format.
 Please see corresponding RFC for manual type conversion.
 
-=item getSubOptionValue ()
+=item getSubOptionValue()
 
 This is an empty stub for now
 
-=item removeSubOption ()
+=item removeSubOption()
 
 This is an empty stub for now
 
-=item I<removeOption ( CODE )>
+=item I<removeOption( CODE )>
 
 Remove option from option list.
 
@@ -1079,6 +1085,7 @@ Remove option from option list.
 returns the packed Client-identifier (pass-through currently)
 
 See L<https://tools.ietf.org/html/rfc2132#section-9.14>
+
 See also L<https://tools.ietf.org/html/rfc4361>
 
 =item I<unpackclientid>
@@ -1091,6 +1098,7 @@ Decodes:
  everything is passed through
 
 See L<https://tools.ietf.org/html/rfc2132#section-9.14>
+
 See also L<https://tools.ietf.org/html/rfc4361>
 
 =item I<packsipserv( VALUE )>
@@ -1113,11 +1121,11 @@ returns the packed Classless Static Route option built from a list of CIDR style
 
 Not implemented, currently croaks.
 
-=item I<addOption ( CODE, VALUE )>
+=item I<addOption( CODE, VALUE )>
 
 I<Removed as of version 0.60. Please use C<addOptionRaw()> instead.>
 
-=item I<getOption ( CODE )>
+=item I<getOption( CODE )>
 
 I<Removed as of version 0.60. Please use C<getOptionRaw()> instead.>
 
@@ -1139,11 +1147,11 @@ Converts a integer to a single byte.
 
 Option code for 'dhcp message' format:
 
-  (053) DHO_DHCP_MESSAGE_TYPE
+    (053) DHO_DHCP_MESSAGE_TYPE
 
 Example:
 
-  $pac->addOptionValue(DHO_DHCP_MESSAGE_TYPE(), DHCPINFORM());
+    $pac->addOptionValue(DHO_DHCP_MESSAGE_TYPE(), DHCPINFORM());
 
 =item string
 
@@ -1151,25 +1159,25 @@ Pure string attribute, no type conversion.
 
 Option codes for 'string' format:
 
-  (012) DHO_HOST_NAME
-  (014) DHO_MERIT_DUMP
-  (015) DHO_DOMAIN_NAME
-  (017) DHO_ROOT_PATH
-  (018) DHO_EXTENSIONS_PATH
-  (047) DHO_NETBIOS_SCOPE
-  (056) DHO_DHCP_MESSAGE
-  (060) DHO_VENDOR_CLASS_IDENTIFIER
-  (062) DHO_NWIP_DOMAIN_NAME
-  (064) DHO_NIS_DOMAIN
-  (065) DHO_NIS_SERVER
-  (066) DHO_TFTP_SERVER
-  (067) DHO_BOOTFILE
-  (086) DHO_NDS_TREE_NAME
-  (098) DHO_USER_AUTHENTICATION_PROTOCOL
+    (012) DHO_HOST_NAME
+    (014) DHO_MERIT_DUMP
+    (015) DHO_DOMAIN_NAME
+    (017) DHO_ROOT_PATH
+    (018) DHO_EXTENSIONS_PATH
+    (047) DHO_NETBIOS_SCOPE
+    (056) DHO_DHCP_MESSAGE
+    (060) DHO_VENDOR_CLASS_IDENTIFIER
+    (062) DHO_NWIP_DOMAIN_NAME
+    (064) DHO_NIS_DOMAIN
+    (065) DHO_NIS_SERVER
+    (066) DHO_TFTP_SERVER
+    (067) DHO_BOOTFILE
+    (086) DHO_NDS_TREE_NAME
+    (098) DHO_USER_AUTHENTICATION_PROTOCOL
 
 Example:
 
-  $pac->addOptionValue(DHO_TFTP_SERVER(), "foobar");
+    $pac->addOptionValue(DHO_TFTP_SERVER(), "foobar");
 
 =item single ip address
 
@@ -1177,17 +1185,17 @@ Exactly one IP address, in dotted numerical format '192.168.1.1'.
 
 Option codes for 'single ip address' format:
 
-  (001) DHO_SUBNET_MASK
-  (016) DHO_SWAP_SERVER
-  (028) DHO_BROADCAST_ADDRESS
-  (032) DHO_ROUTER_SOLICITATION_ADDRESS
-  (050) DHO_DHCP_REQUESTED_ADDRESS
-  (054) DHO_DHCP_SERVER_IDENTIFIER
-  (118) DHO_SUBNET_SELECTION
+    (001) DHO_SUBNET_MASK
+    (016) DHO_SWAP_SERVER
+    (028) DHO_BROADCAST_ADDRESS
+    (032) DHO_ROUTER_SOLICITATION_ADDRESS
+    (050) DHO_DHCP_REQUESTED_ADDRESS
+    (054) DHO_DHCP_SERVER_IDENTIFIER
+    (118) DHO_SUBNET_SELECTION
 
 Example:
 
-  $pac->addOptionValue(DHO_SUBNET_MASK(), "255.255.255.0");
+    $pac->addOptionValue(DHO_SUBNET_MASK(), "255.255.255.0");
 
 =item multiple ip addresses
 
@@ -1196,35 +1204,35 @@ Empty value allowed.
 
 Option codes for 'multiple ip addresses' format:
 
-  (003) DHO_ROUTERS
-  (004) DHO_TIME_SERVERS
-  (005) DHO_NAME_SERVERS
-  (006) DHO_DOMAIN_NAME_SERVERS
-  (007) DHO_LOG_SERVERS
-  (008) DHO_COOKIE_SERVERS
-  (009) DHO_LPR_SERVERS
-  (010) DHO_IMPRESS_SERVERS
-  (011) DHO_RESOURCE_LOCATION_SERVERS
-  (041) DHO_NIS_SERVERS
-  (042) DHO_NTP_SERVERS
-  (044) DHO_NETBIOS_NAME_SERVERS
-  (045) DHO_NETBIOS_DD_SERVER
-  (048) DHO_FONT_SERVERS
-  (049) DHO_X_DISPLAY_MANAGER
-  (068) DHO_MOBILE_IP_HOME_AGENT
-  (069) DHO_SMTP_SERVER
-  (070) DHO_POP3_SERVER
-  (071) DHO_NNTP_SERVER
-  (072) DHO_WWW_SERVER
-  (073) DHO_FINGER_SERVER
-  (074) DHO_IRC_SERVER
-  (075) DHO_STREETTALK_SERVER
-  (076) DHO_STDA_SERVER
-  (085) DHO_NDS_SERVERS
+    (003) DHO_ROUTERS
+    (004) DHO_TIME_SERVERS
+    (005) DHO_NAME_SERVERS
+    (006) DHO_DOMAIN_NAME_SERVERS
+    (007) DHO_LOG_SERVERS
+    (008) DHO_COOKIE_SERVERS
+    (009) DHO_LPR_SERVERS
+    (010) DHO_IMPRESS_SERVERS
+    (011) DHO_RESOURCE_LOCATION_SERVERS
+    (041) DHO_NIS_SERVERS
+    (042) DHO_NTP_SERVERS
+    (044) DHO_NETBIOS_NAME_SERVERS
+    (045) DHO_NETBIOS_DD_SERVER
+    (048) DHO_FONT_SERVERS
+    (049) DHO_X_DISPLAY_MANAGER
+    (068) DHO_MOBILE_IP_HOME_AGENT
+    (069) DHO_SMTP_SERVER
+    (070) DHO_POP3_SERVER
+    (071) DHO_NNTP_SERVER
+    (072) DHO_WWW_SERVER
+    (073) DHO_FINGER_SERVER
+    (074) DHO_IRC_SERVER
+    (075) DHO_STREETTALK_SERVER
+    (076) DHO_STDA_SERVER
+    (085) DHO_NDS_SERVERS
 
 Example:
 
-  $pac->addOptionValue(DHO_NAME_SERVERS(), "10.0.0.11 192.168.1.10");
+    $pac->addOptionValue(DHO_NAME_SERVERS(), "10.0.0.11 192.168.1.10");
 
 =item pairs of ip addresses
 
@@ -1233,12 +1241,12 @@ Empty value allowed.
 
 Option codes for 'pairs of ip address' format:
 
-  (021) DHO_POLICY_FILTER
-  (033) DHO_STATIC_ROUTES
+    (021) DHO_POLICY_FILTER
+    (033) DHO_STATIC_ROUTES
 
 Example:
 
-  $pac->addOptionValue(DHO_STATIC_ROUTES(), "10.0.0.1 192.168.1.254");
+    $pac->addOptionValue(DHO_STATIC_ROUTES(), "10.0.0.1 192.168.1.254");
 
 =item byte, short and integer
 
@@ -1247,43 +1255,43 @@ format.
 
 Option codes for 'byte (8)' format:
 
-  (019) DHO_IP_FORWARDING
-  (020) DHO_NON_LOCAL_SOURCE_ROUTING
-  (023) DHO_DEFAULT_IP_TTL
-  (027) DHO_ALL_SUBNETS_LOCAL
-  (029) DHO_PERFORM_MASK_DISCOVERY
-  (030) DHO_MASK_SUPPLIER
-  (031) DHO_ROUTER_DISCOVERY
-  (034) DHO_TRAILER_ENCAPSULATION
-  (036) DHO_IEEE802_3_ENCAPSULATION
-  (037) DHO_DEFAULT_TCP_TTL
-  (039) DHO_TCP_KEEPALIVE_GARBAGE
-  (046) DHO_NETBIOS_NODE_TYPE
-  (052) DHO_DHCP_OPTION_OVERLOAD
-  (116) DHO_AUTO_CONFIGURE
+    (019) DHO_IP_FORWARDING
+    (020) DHO_NON_LOCAL_SOURCE_ROUTING
+    (023) DHO_DEFAULT_IP_TTL
+    (027) DHO_ALL_SUBNETS_LOCAL
+    (029) DHO_PERFORM_MASK_DISCOVERY
+    (030) DHO_MASK_SUPPLIER
+    (031) DHO_ROUTER_DISCOVERY
+    (034) DHO_TRAILER_ENCAPSULATION
+    (036) DHO_IEEE802_3_ENCAPSULATION
+    (037) DHO_DEFAULT_TCP_TTL
+    (039) DHO_TCP_KEEPALIVE_GARBAGE
+    (046) DHO_NETBIOS_NODE_TYPE
+    (052) DHO_DHCP_OPTION_OVERLOAD
+    (116) DHO_AUTO_CONFIGURE
 
 Option codes for 'short (16)' format:
 
-  (013) DHO_BOOT_SIZE
-  (022) DHO_MAX_DGRAM_REASSEMBLY
-  (026) DHO_INTERFACE_MTU
-  (057) DHO_DHCP_MAX_MESSAGE_SIZE
+    (013) DHO_BOOT_SIZE
+    (022) DHO_MAX_DGRAM_REASSEMBLY
+    (026) DHO_INTERFACE_MTU
+    (057) DHO_DHCP_MAX_MESSAGE_SIZE
 
 Option codes for 'integer (32)' format:
 
-  (002) DHO_TIME_OFFSET
-  (024) DHO_PATH_MTU_AGING_TIMEOUT
-  (035) DHO_ARP_CACHE_TIMEOUT
-  (038) DHO_TCP_KEEPALIVE_INTERVAL
-  (051) DHO_DHCP_LEASE_TIME
-  (058) DHO_DHCP_RENEWAL_TIME
-  (059) DHO_DHCP_REBINDING_TIME
+    (002) DHO_TIME_OFFSET
+    (024) DHO_PATH_MTU_AGING_TIMEOUT
+    (035) DHO_ARP_CACHE_TIMEOUT
+    (038) DHO_TCP_KEEPALIVE_INTERVAL
+    (051) DHO_DHCP_LEASE_TIME
+    (058) DHO_DHCP_RENEWAL_TIME
+    (059) DHO_DHCP_REBINDING_TIME
 
 Examples:
 
-  $pac->addOptionValue(DHO_DHCP_OPTION_OVERLOAD(), 3);
-  $pac->addOptionValue(DHO_INTERFACE_MTU(), 1500);
-  $pac->addOptionValue(DHO_DHCP_RENEWAL_TIME(), 24*60*60);
+    $pac->addOptionValue(DHO_DHCP_OPTION_OVERLOAD(), 3);
+    $pac->addOptionValue(DHO_INTERFACE_MTU(), 1500);
+    $pac->addOptionValue(DHO_DHCP_RENEWAL_TIME(), 24*60*60);
 
 =item multiple bytes, shorts
 
@@ -1291,16 +1299,16 @@ A list a bytes or shorts.
 
 Option codes for 'multiple bytes (8)' format:
 
-  (055) DHO_DHCP_PARAMETER_REQUEST_LIST
+    (055) DHO_DHCP_PARAMETER_REQUEST_LIST
 
 Option codes for 'multiple shorts (16)' format:
 
-  (025) DHO_PATH_MTU_PLATEAU_TABLE
-  (117) DHO_NAME_SERVICE_SEARCH
+    (025) DHO_PATH_MTU_PLATEAU_TABLE
+    (117) DHO_NAME_SERVICE_SEARCH
 
 Examples:
 
-  $pac->addOptionValue(DHO_DHCP_PARAMETER_REQUEST_LIST(),  "1 3 6 12 15 28 42 72");
+    $pac->addOptionValue(DHO_DHCP_PARAMETER_REQUEST_LIST(),  "1 3 6 12 15 28 42 72");
 
 =back
 
@@ -1308,11 +1316,11 @@ Examples:
 
 =over 4
 
-=item serialize ()
+=item serialize()
 
 Converts a Net::DHCP::Packet to a string, ready to put on the network.
 
-=item marshall ( BYTES )
+=item marshall( BYTES )
 
 The inverse of serialize. Converts a string, presumably a
 received UDP packet, into a Net::DHCP::Packet.
@@ -1325,20 +1333,20 @@ If the packet is malformed, a fatal error is produced.
 
 =over 4
 
-=item toString ()
+=item toString()
 
 Returns a textual representation of the packet, for debugging.
 
-=item packsuboptions ( LIST )
+=item packsuboptions( LIST )
 
 Transforms an list of lists into packed option.
 For option 43 (vendor specific), 82 (relay agent) etc.
 
-=item unpacksuboptions ( STRING )
+=item unpacksuboptions( STRING )
 
 Unpacks sub-options to a list of lists
 
-=item min_len_handling ( LEVEL )
+=item min_len_handling( LEVEL )
 
 By default, the level is set to 0. If the packet is shorter than the
 minimum C<BOOTP_MIN_LEN>, a warning is issued; if it is shorter than
@@ -1367,22 +1375,24 @@ Sending a simple DHCP packet:
   use Net::DHCP::Packet;
   use Net::DHCP::Constants;
 
-  # creat DHCP Packet
+  # create DHCP Packet
   $discover = Net::DHCP::Packet->new(
-                        xid => int(rand(0xFFFFFFFF)), # random xid
-                        Flags => 0x8000,              # ask for broadcast answer
-                        DHO_DHCP_MESSAGE_TYPE() => DHCPDISCOVER()
-                        );
+      Xid                      => int(rand(0xFFFFFFFF)),
+      Flags                    => 0x8000,
+      DHO_DHCP_MESSAGE_TYPE()  => DHCPDISCOVER(),
+  );
 
   # send packet
-  $handle = IO::Socket::INET->new(Proto => 'udp',
-                                  Broadcast => 1,
-                                  PeerPort => '67',
-                                  LocalPort => '68',
-                                  PeerAddr => '255.255.255.255')
-                or die "socket: $@";     # yes, it uses $@ here
+  $handle = IO::Socket::INET->new(
+      Proto     => 'udp',
+      Broadcast => 1,
+      PeerPort  => '67',
+      LocalPort => '68',
+      PeerAddr  => '255.255.255.255',
+  ) or die "socket: $@";
+
   $handle->send($discover->serialize())
-                or die "Error sending broadcast inform:$!\n";
+      or die "Error sending broadcast inform: $!\n";
 
 Sniffing DHCP packets.
 
@@ -1391,11 +1401,16 @@ Sniffing DHCP packets.
 
   use IO::Socket::INET;
   use Net::DHCP::Packet;
-  $sock = IO::Socket::INET->new(LocalPort => 67, Proto => "udp", Broadcast => 1)
-          or die "socket: $@";
+
+  $sock = IO::Socket::INET->new(
+      LocalPort => 67,
+      Proto     => 'udp',
+      Broadcast => 1,
+  ) or die "socket: $@";
+
   while ($sock->recv($newmsg, 1024)) {
-          $packet = Net::DHCP::Packet->new($newmsg);
-          print STDERR $packet->toString();
+      $packet = Net::DHCP::Packet->new($newmsg);
+      print STDERR $packet->toString();
   }
 
 Sending a LEASEQUERY (provided by John A. Murphy).
@@ -1407,31 +1422,34 @@ Sending a LEASEQUERY (provided by John A. Murphy).
   use Net::DHCP::Packet;
   use Net::DHCP::Constants;
 
-  $usage = "usage: $0 DHCP_SERVER_IP DHCP_CLIENT_IP\n"; $ARGV[1] || die $usage;
+  $usage = "usage: $0 DHCP_SERVER_IP DHCP_CLIENT_IP\n";
+  $ARGV[1] or die $usage;
 
   # create a socket
-  $handle = IO::Socket::INET->new(Proto     => 'udp',
-                                  Broadcast => 1,
-                                  PeerPort  => '67',
-                                  LocalPort => '67',
-                                  PeerAddr  => $ARGV[0])
-                or die "socket: $@";     # yes, it uses $@ here
+  $handle = IO::Socket::INET->new(
+      Proto     => 'udp',
+      Broadcast => 1,
+      PeerPort  => '67',
+      LocalPort => '67',
+      PeerAddr  => $ARGV[0],
+  ) or die "socket: $@";
 
   # create DHCP Packet
   $inform = Net::DHCP::Packet->new(
-                      op     => BOOTREQUEST(),
-                      Htype  => '0',
-                      Hlen   => '0',
-                      Ciaddr => $ARGV[1],
-                      Giaddr => $handle->sockhost(),
-                      Xid    => int(rand(0xFFFFFFFF)), # random xid
-                      DHO_DHCP_MESSAGE_TYPE() => DHCPLEASEQUERY
-                      );
+      Op                       => BOOTREQUEST(),
+      Htype                    => 0,
+      Hlen                     => 0,
+      Ciaddr                   => $ARGV[1],
+      Giaddr                   => $handle->sockhost(),
+      Xid                      => int(rand(0xFFFFFFFF)),
+      DHO_DHCP_MESSAGE_TYPE()  => DHCPLEASEQUERY,
+  );
 
   # send request
-  $handle->send($inform->serialize()) or die "Error sending LeaseQuery: $!\n";
+  $handle->send($inform->serialize())
+      or die "Error sending LeaseQuery: $!\n";
 
-  #receive response
+  # receive response
   $handle->recv($newmsg, 1024) or die;
   $packet = Net::DHCP::Packet->new($newmsg);
   print $packet->toString();
