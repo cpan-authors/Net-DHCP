@@ -10,7 +10,13 @@ use 5.8.0;
 package Net::DHCP::Packet;
 
 use Carp;
-use Net::DHCP::Constants qw(:DEFAULT :dhcp_hashes :dhcp_other %DHO_FORMATS %SUBOPTION_FORMATS);
+use Net::DHCP::Constants qw(
+    :DEFAULT
+    :dhcp_hashes
+    :dhcp_other
+    %DHO_FORMATS
+    %SUBOPTION_FORMATS
+);
 use Net::DHCP::Packet::Attributes qw(:all);
 use Net::DHCP::Packet::IPv4Utils qw(:all);
 use List::Util qw(any first);
@@ -359,51 +365,42 @@ sub getSubOptionRaw {
     return;
 }
 
+my %unpack = (
+    inet   => sub { return unpackinets_array(shift) },
+    inets  => sub { return unpackinets_array(shift) },
+    inets2 => sub { return unpackinets_array(shift) },
+    int    => sub { return unpack('N',          shift) },
+    short  => sub { return unpack('n',          shift) },
+    shorts => sub { return unpack('n*',         shift) },
+    byte   => sub { return unpack('C',          shift) },
+    bytes  => sub { return unpack('C*',         shift) },
+    string => sub { return                     shift },
+    hexa   => sub { return unpack('H*',         shift) },
+);
+
 sub getSubOptionValue {
+    my $self = shift;
+    my $code = shift;
+    my $subcode = shift;
 
-    # FIXME
-    #~ my $self = shift;
-    #~ my $code = shift;
-    #~
-    #~ carp("getOptionValue: unknown format for code ($code)")
-    #~ unless exists( $DHO_FORMATS{$code} );
-    #~
-    #~ my $format = $DHO_FORMATS{$code};
-    #~
-    #~ my $value_bin = $self->getOptionRaw($code);
-    #~
-    #~ return unless defined $value_bin;
-    #~
-    #~ my @values;
-    #~
-    #~ # hash out these options for speed and sanity
-    #~ my %options = (
-    #~ inet   => sub { return unpackinets_array(shift) },
-    #~ inets  => sub { return unpackinets_array(shift) },
-    #~ inets2 => sub { return unpackinets_array(shift) },
-    #~ int    => sub { return unpack( 'N', shift ) },
-    #~ short  => sub { return unpack( 'n', shift ) },
-    #~ shorts => sub { return unpack( 'n*', shift ) },
-    #~ byte   => sub { return unpack( 'C', shift ) },
-    #~ bytes  => sub { return unpack( 'C*', shift ) },
-    #~ string => sub { return shift },
-    #~
-    #~ );
-    #~
-    #~ #  } elsif ($format eq 'relays') {
-    #~ #    @values = $self->decodeRelayAgent($value_bin);
-    #~ #    # TBM, bad format
-    #~ #  } elsif ($format eq 'ids') {
-    #~ #    $values[0] = $value_bin;
-    #~ #    # TBM, bad format
-    #~
-    #~ # decode the options if we know the format
-    #~ return join( q| |, $options{$format}->($value_bin) )
-    #~ if $options{$format};
-    #~
-    #~ # if we cant work out the format
-    #~ return $value_bin
+    croak("getSubOptionValue: unknown format for code ($code)")
+      unless exists $DHO_FORMATS{$code};
+    croak("getSubOptionValue: not a suboption parameter for code ($code)")
+      unless $DHO_FORMATS{$code} eq 'suboptions';
+    croak("getSubOptionValue: no suboptions defined for code ($code)")
+      unless exists $SUBOPTION_CODES{$code};
+    croak("getSubOptionValue: suboption ($subcode) not defined for code ($code)")
+      unless exists $REV_SUBOPTION_CODES{$code}->{$subcode};
 
+    my $format = exists $SUBOPTION_FORMATS{$code} ? $SUBOPTION_FORMATS{$code}->{$subcode} : undef;
+    my $value_bin = $self->getSubOptionRaw($code, $subcode);
+    return unless defined $value_bin;
+
+    if ( defined $format && $unpack{$format} ) {
+        return join(q|, |, $unpack{$format}->($value_bin));
+    }
+
+    return $value_bin
 }    # getSubOptionValue
 
 sub removeOption {
@@ -420,20 +417,18 @@ sub removeOption {
 }
 
 sub removeSubOption {
-
-# FIXME
-#~ my ( $self, $key ) = @_;
-#~ if ( exists( $self->{options}->{$key} ) ) {
-#~ my $i = first { $self->{options_order}->[$_] == $key } 0..$#{ $self->{options_order} };
-#~ #        for ( $i = 0 ; $i < @{ $self->{options_order} } ; $i++ ) {
-#~ #            last if ( $self->{options_order}->[$i] == $key );
-#~ #        }
-#~ if ( $i < @{ $self->{options_order} } ) {
-#~ splice @{ $self->{options_order} }, $i, 1;
-#~ }
-#~ delete( $self->{options}->{$key} );
-#~ }
-
+    my ($self, $code, $subcode) = @_;
+    if (exists $self->{options}->{$code}
+        && ref $self->{options}->{$code} eq 'HASH'
+        && exists $self->{options}->{$code}->{$subcode}) {
+        delete $self->{options}->{$code}->{$subcode};
+        @{ $self->{sub_options_order}->{$code} } = grep { $_ != $subcode } @{ $self->{sub_options_order}->{$code} };
+        unless (keys %{ $self->{options}->{$code} }) {
+            delete $self->{options}->{$code};
+            delete $self->{sub_options_order}->{$code};
+            @{ $self->{options_order} } = grep { $_ != $code } @{ $self->{options_order} };
+        }
+    }
 }
 
 #=======================================================================
@@ -460,7 +455,8 @@ sub serialize {
                     $bytes .= pack( 'C',    $key );
                     $bytes .= pack( 'C/a*', $value );
                 }
-            } elsif ( ref($self->{options}->{$key}) eq 'HASH' ) {
+            }
+            elsif ( ref($self->{options}->{$key}) eq 'HASH' ) {
                 my $subbytes = q{};
                 for my $subkey ( @{ $self->{sub_options_order}->{$key} } ) {
                     $subbytes .= pack( 'C',    $subkey );
@@ -468,7 +464,8 @@ sub serialize {
                 }
                 $bytes .= pack( 'C',    $key );
                 $bytes .= pack( 'C', byte_len($subbytes) ) . $subbytes;
-            } else {
+            }
+            else {
                 $bytes .= pack( 'C',    $key );
                 $bytes .= pack( 'C/a*', $self->{options}->{$key} );
             }
@@ -660,43 +657,39 @@ sub toString {
     $s .= "Options : \n";
 
     for my $key ( @{ $self->{options_order} } ) {
-        my $value;    # value of option to be printed
+        my $value;
 
-        if ( $key == DHO_DHCP_MESSAGE_TYPE() ) {
-            $value = $self->getOptionValue($key);
-            $value =
-              ( exists( $REV_DHCP_MESSAGE{$value} )
-                  && $REV_DHCP_MESSAGE{$value} )
-              || $self->getOptionValue($key);
+        if ( exists $DHO_FORMATS{$key} && $DHO_FORMATS{$key} eq 'suboptions' ) {
+            for my $subkey ( @{ $self->{sub_options_order}->{$key} } ) {
+                my $subvalue;
+                eval { $subvalue = join(q| |, $self->getSubOptionValue($key, $subkey)) };
+                if ($@) {
+                    my $raw = $self->getSubOptionRaw($key, $subkey);
+                    $subvalue = defined $raw ? unpack('H*', $raw) : '';
+                }
+                $subvalue = _printable($subvalue);
+                $s .= sprintf("   %s(%d) = %s\n",
+                    exists $SUBOPTION_CODES{$key} && exists $REV_SUBOPTION_CODES{$key}{$subkey}
+                      ? $REV_SUBOPTION_CODES{$key}{$subkey} : '',
+                    $key, $subvalue);
+            }
+            $value = 'see above';
         }
         else {
-
-            if ( exists( $DHO_FORMATS{$key} ) ) {
-                if ( $DHO_FORMATS{$key} eq 'suboptions' ) {
-                    for my $subkey ( @{ $self->{sub_options_order}->{$key} } ) {
-                        my $subvalue = join( q| |, $self->getSubOptionValue($key,$subkey) );  # FIXME fix the getSubOptionValue function
-                        $subvalue =~
-                            s/([[:^print:]])/ sprintf q[\x%02X], ord $1 /eg;
-                        $s .= sprintf( "   %s(%d) = %s\n",
-                            exists $SUBOPTION_CODES{$key} ? $REV_SUBOPTION_CODES{$key}{$subkey} : '',
-                            $key, $subvalue );
-                    }
-                    $value = 'see above';
-                } else {
-                    $value = join( q| |, $self->getOptionValue($key) );
+            $value = $self->getOptionValue($key);
+            $value = $self->getOptionRaw($key) unless defined $value;
+            if ( defined $value ) {
+                if ($key == DHO_DHCP_MESSAGE_TYPE() && exists $REV_DHCP_MESSAGE{$value}) {
+                    $value = $REV_DHCP_MESSAGE{$value};
                 }
+                $value = _printable($value);
             }
-            else {
-                $value = $self->getOptionRaw($key);
-            }
-
-            # convert to printable text
-            $value =~
-              s/([[:^print:]])/ sprintf q[\x%02X], ord $1 /eg;
+            $value = '' unless defined $value;
         }
-        $s .= sprintf( " %s(%d) = %s\n",
+
+        $s .= sprintf(" %s(%d) = %s\n",
             exists $REV_DHO_CODES{$key} ? $REV_DHO_CODES{$key} : '',
-            $key, $value );
+            $key, $value);
     }
     $s .= sprintf(
         "padding [%s] = %s\n",
@@ -710,6 +703,12 @@ sub toString {
 
 #=======================================================================
 # internal utility functions
+
+sub _printable {
+    my $str = shift;
+    $str =~ s/([[:^print:]])/ sprintf q[\x%02X], ord $1 /eg;
+    return $str;
+}
 
 sub packsuboptions {
     my @relay_opt = @_

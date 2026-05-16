@@ -1,9 +1,10 @@
 #!/usr/bin/env perl
 
-use Test::More tests => 51;
+use Test::More tests => 63;
 
 BEGIN { use_ok( 'Net::DHCP::Packet' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants' ); }
+BEGIN { use_ok( 'Net::DHCP::Constants', ':ra_codes' ); }
 
 use strict;
 use warnings;
@@ -155,4 +156,49 @@ $pac->removeOption(DHO_DEFAULT_TCP_TTL());
 is($pac->getOptionRaw(DHO_TFTP_SERVER()), undef);
 is($pac->getOptionRaw(DHO_DHCP_PARAMETER_REQUEST_LIST()), undef);
 is($pac->getOptionRaw(DHO_DEFAULT_TCP_TTL()), undef);
+
+# getSubOptionValue and removeSubOption
+{
+    my $p = Net::DHCP::Packet->new();
+    $p->addSubOptionValue(DHO_DHCP_AGENT_OPTIONS(), RAI_CIRCUIT_ID(), "aabb");
+    is($p->getSubOptionRaw(DHO_DHCP_AGENT_OPTIONS(), RAI_CIRCUIT_ID()),
+        "\xAA\xBB", 'getSubOptionRaw after addSubOptionValue hexa');
+    is($p->getSubOptionValue(DHO_DHCP_AGENT_OPTIONS(), RAI_CIRCUIT_ID()),
+        'aabb', 'getSubOptionValue round trip hexa');
+
+    is($p->getSubOptionValue(DHO_DHCP_AGENT_OPTIONS(), RAI_LINK_SELECTION()),
+        undef, 'getSubOptionValue for missing suboption');
+
+    $p->removeSubOption(DHO_DHCP_AGENT_OPTIONS(), RAI_CIRCUIT_ID());
+    is($p->getSubOptionRaw(DHO_DHCP_AGENT_OPTIONS(), RAI_CIRCUIT_ID()),
+        undef, 'after removeSubOption, raw is undef');
+
+    $p->addSubOptionValue(DHO_DHCP_AGENT_OPTIONS(), RAI_CIRCUIT_ID(), "aabb");
+    $p->addSubOptionValue(DHO_DHCP_AGENT_OPTIONS(), RAI_REMOTE_ID(), "ccdd");
+    is(scalar(@{$p->{sub_options_order}->{DHO_DHCP_AGENT_OPTIONS()}}),
+        2, 'two suboptions in order');
+    $p->removeSubOption(DHO_DHCP_AGENT_OPTIONS(), RAI_CIRCUIT_ID());
+    is(scalar(@{$p->{sub_options_order}->{DHO_DHCP_AGENT_OPTIONS()}}),
+        1, 'one suboption left after remove');
+    is($p->getSubOptionValue(DHO_DHCP_AGENT_OPTIONS(), RAI_REMOTE_ID()),
+        'ccdd', 'other suboption intact');
+}
+
+# getSubOptionValue validation croaks
+{
+    my $p = Net::DHCP::Packet->new();
+    $p->addSubOptionValue(DHO_DHCP_AGENT_OPTIONS(), RAI_CIRCUIT_ID(), "aabb");
+
+    eval { $p->getSubOptionValue(90, 1) };
+    like($@, qr/unknown format for code/, 'getSubOptionValue croaks for unknown option code');
+
+    eval { $p->getSubOptionValue(DHO_SUBNET_MASK(), 1) };
+    like($@, qr/not a suboption parameter/, 'getSubOptionValue croaks for non-suboption code');
+
+    eval { $p->getSubOptionValue(DHO_DHCP_AGENT_OPTIONS(), 999) };
+    like($@, qr/suboption.*not defined/, 'getSubOptionValue croaks for undefined suboption');
+
+    eval { $p->getSubOptionValue(DHO_VENDOR_ENCAPSULATED_OPTIONS(), 1) };
+    like($@, qr/no suboptions defined/, 'getSubOptionValue croaks for code with no suboption definitions');
+}
 
