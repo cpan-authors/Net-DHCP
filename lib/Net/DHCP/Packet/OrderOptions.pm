@@ -2,7 +2,7 @@
 # PODNAME: Net::DHCP::Packet::OrderOptions
 # ABSTRACT: Option ordering quirks for Net::DHCP
 use strict;
-use warnings;
+use warnings FATAL => 'uninitialized';
 use 5.8.0;
 
 package Net::DHCP::Packet::OrderOptions;

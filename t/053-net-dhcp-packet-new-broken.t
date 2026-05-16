@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 11;
+use Test::More tests => 12;
 
 BEGIN { use_ok( 'Net::DHCP::Packet' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants' ); }
@@ -46,6 +46,11 @@ eval {
 };
 #diag($@);
 like( $@, qr/marshall: unexpected end of options/, 'marshall: unexpected end of options');
+
+eval {
+  $pac = Net::DHCP::Packet->new(54, "foo", 55);
+};
+like( $@, qr/odd number of arguments/, 'new: odd number of arguments');
 
 # now test serialize
 $pac = Net::DHCP::Packet->new();

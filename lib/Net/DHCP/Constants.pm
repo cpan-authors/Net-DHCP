@@ -3,7 +3,7 @@
 # Author: Dean Hamstead, Stephan Hadinger
 # ABSTRACT: Constants for DHCP codes and options
 use strict;
-use warnings;
+use warnings FATAL => 'uninitialized';
 use 5.8.0;
 
 package Net::DHCP::Constants;
