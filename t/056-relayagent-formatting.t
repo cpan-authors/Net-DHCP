@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 17;
+use Test::More tests => 19;
 
 BEGIN { use_ok( 'Net::DHCP::Packet' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants', ':ra_codes' ); }
@@ -9,6 +9,7 @@ BEGIN { use_ok( 'Net::DHCP::Constants', ':dhcp_other' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants', ':dho_codes' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants', ':geoconf_codes' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants', ':nwip_codes' ); }
+BEGIN { use_ok( 'Net::DHCP::Constants', ':ccc_codes' ); }
 
 sub pack_subopt {
     my ($type, $val) = @_;
@@ -196,7 +197,7 @@ subtest 'nwip suboption (63) with byte/inet format' => sub {
     is($p->getSubOptionValue(DHO_NWIP_SUBOPTIONS(), NWIP_DOES_NOT_EXIST()),
         1, 'nwip flag suboption round-trip');
     is($p->getSubOptionRaw(DHO_NWIP_SUBOPTIONS(), NWIP_DOES_NOT_EXIST()),
-        "\x01", 'raw nwip flag correct');
+        "\x01",         'raw nwip flag correct');
 
     # IP suboption (inet)
     $p->addSubOptionValue(DHO_NWIP_SUBOPTIONS(), NWIP_PREFERRED_DSS(), '10.0.0.1');
@@ -214,4 +215,33 @@ subtest 'nwip suboption (63) with byte/inet format' => sub {
     $p2->addSubOptionValue(DHO_NWIP_SUBOPTIONS(), NWIP_1_1(), '0');
     is($p2->getSubOptionValue(DHO_NWIP_SUBOPTIONS(), NWIP_1_1()),
         0, 'nwip 1_1 suboption round-trip');
+};
+
+subtest 'ccc suboption (122) with inet/string/byte/int/hexa format' => sub {
+    plan tests => 6;
+    my $p = Net::DHCP::Packet->new();
+
+    # inet suboption
+    $p->addSubOptionValue(DHO_CCC(), CCC_PRIMARY_DHCP_SERVER(), '10.0.0.2');
+    is($p->getSubOptionValue(DHO_CCC(), CCC_PRIMARY_DHCP_SERVER()),
+        '10.0.0.2', 'ccc inet suboption round-trip');
+    is($p->getSubOptionRaw(DHO_CCC(), CCC_PRIMARY_DHCP_SERVER()),
+        "\x0A\x00\x00\x02", 'raw ccc inet correct');
+
+    # string suboption
+    $p->addSubOptionValue(DHO_CCC(), CCC_KERBEROS_REALM(), 'EXAMPLE.COM');
+    is($p->getSubOptionValue(DHO_CCC(), CCC_KERBEROS_REALM()),
+        'EXAMPLE.COM', 'ccc string suboption round-trip');
+
+    # byte suboption
+    $p->addSubOptionValue(DHO_CCC(), CCC_TICKET_SERVER_UTILIZATION(), '7');
+    is($p->getSubOptionValue(DHO_CCC(), CCC_TICKET_SERVER_UTILIZATION()),
+        7, 'ccc byte suboption round-trip');
+
+    # int suboption (u32)
+    $p->addSubOptionValue(DHO_CCC(), CCC_PROVISIONING_TIMER(), '3600');
+    is($p->getSubOptionValue(DHO_CCC(), CCC_PROVISIONING_TIMER()),
+        3600, 'ccc int suboption round-trip');
+    is($p->getSubOptionRaw(DHO_CCC(), CCC_PROVISIONING_TIMER()),
+        "\x00\x00\x0E\x10", 'raw ccc provisioning timer correct');
 };

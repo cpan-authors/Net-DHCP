@@ -20,6 +20,7 @@ our ( %HTYPE_CODES,      %REV_HTYPE_CODES );
 our ( %NWIP_CODES,       %REV_NWIP_CODES );
 our ( %NWIP_FORMATS,     %REV_NWIP_FORMATS );
 our ( %CCC_CODES,        %REV_CCC_CODES );
+our ( %CCC_FORMATS,      %REV_CCC_FORMATS );
 our ( %GEOCONF_CODES,    %REV_GEOCONF_CODES );
 our ( %GEOCONF_FORMATS,  %REV_GEOCONF_FORMATS );
 our ( %RELAYAGENT_CODES, %REV_RELAYAGENT_CODES );
@@ -43,6 +44,7 @@ our %EXPORT_TAGS = (
           %NWIP_CODES %REV_NWIP_CODES
           %NWIP_FORMATS %REV_NWIP_FORMATS
           %CCC_CODES %REV_CCC_CODES
+          %CCC_FORMATS %REV_CCC_FORMATS
           %HTYPE_CODES %REV_HTYPE_CODES
           %GEOCONF_CODES %REV_GEOCONF_CODES
           %GEOCONF_FORMATS %REV_GEOCONF_FORMATS
@@ -67,6 +69,7 @@ our @EXPORT_OK = qw(
   %NWIP_FORMATS %REV_NWIP_FORMATS
   %HTYPE_CODES %REV_HTYPE_CODES
   %CCC_CODES %REV_CCC_CODES
+  %CCC_FORMATS %REV_CCC_FORMATS
   %DHO_FORMATS
   %SUBOPTION_FORMATS
   %GEOCONF_CODES %REV_GEOCONF_CODES
@@ -315,20 +318,6 @@ BEGIN {
         #'Unassigned' => '12-255'
     );
 
-    %NWIP_FORMATS = (
-        1  => 'byte',   # NWIP_DOES_NOT_EXIST
-        2  => 'byte',   # NWIP_EXIST_IN_OPTIONS_AREA
-        3  => 'byte',   # NWIP_EXIST_IN_SNAME_FILE
-        4  => 'byte',   # NWIP_EXIST_BUT_TOO_BIG
-        5  => 'byte',   # NWIP_NSQ_BROADCAST
-        6  => 'inet',   # NWIP_PREFERRED_DSS
-        7  => 'inet',   # NWIP_NEAREST_NWIP_SERVER
-        8  => 'byte',   # NWIP_AUTORETRIES
-        9  => 'byte',   # NWIP_AUTORETRY_SECS
-        10 => 'byte',   # NWIP_1_1
-        11 => 'inet',   # NWIP_PRIMARY_DSS
-    );
-
     # Type 122 sub option codes
     %CCC_CODES = (
         'CCC_PRIMARY_DHCP_SERVER'        => 1,
@@ -381,6 +370,21 @@ use constant \%HTYPE_CODES;
 
 use constant \%NWIP_CODES;
 %REV_NWIP_CODES = reverse %NWIP_CODES;
+
+%NWIP_FORMATS = (
+    NWIP_DOES_NOT_EXIST()        => 'byte',
+    NWIP_EXIST_IN_OPTIONS_AREA() => 'byte',
+    NWIP_EXIST_IN_SNAME_FILE()   => 'byte',
+    NWIP_EXIST_BUT_TOO_BIG()     => 'byte',
+    NWIP_NSQ_BROADCAST()         => 'byte',
+    NWIP_PREFERRED_DSS()         => 'inet',
+    NWIP_NEAREST_NWIP_SERVER()   => 'inet',
+    NWIP_AUTORETRIES()           => 'byte',
+    NWIP_AUTORETRY_SECS()        => 'byte',
+    NWIP_1_1()                   => 'byte',
+    NWIP_PRIMARY_DSS()           => 'inet',
+);
+%REV_NWIP_FORMATS = reverse %NWIP_FORMATS;
 
 use constant \%CCC_CODES;
 %REV_CCC_CODES = reverse %CCC_CODES;
@@ -539,16 +543,33 @@ our %DHO_FORMATS = (
 
 %REV_GEOCONF_FORMATS = reverse %GEOCONF_FORMATS;
 
+%CCC_FORMATS = (
+    CCC_PRIMARY_DHCP_SERVER()        => 'inet',    # rfc 3495
+    CCC_SECONDARY_DHCP_SERVER()      => 'inet',
+    CCC_PROVISIONING_SERVER()        => 'inet',
+    CCC_AS_REQ_AS_REP_BACKOFFRETRY() => 'hexa',    # two u16 values
+    CCC_AP_REQ_AS_REP_BACKOFFRETRY() => 'hexa',    # two u16 values
+    CCC_KERBEROS_REALM()             => 'string',
+    CCC_TICKET_SERVER_UTILIZATION()  => 'byte',
+    CCC_PROVISIONING_TIMER()         => 'int',      # seconds (u32)
+    CCC_SECURITY_TICKET_CONTROL()    => 'byte',
+    CCC_KDC_SERVER()                 => 'inet',
+);
+
+%REV_CCC_FORMATS = reverse %CCC_FORMATS;
+
 our %SUBOPTION_FORMATS = (
     $DHO_CODES{'DHO_DHCP_AGENT_OPTIONS'}    => \%RELAYAGENT_FORMATS,
     $DHO_CODES{'DHO_GEOCONF'}               => \%GEOCONF_FORMATS,
     $DHO_CODES{'DHO_NWIP_SUBOPTIONS'}        => \%NWIP_FORMATS,
+    $DHO_CODES{'DHO_CCC'}                    => \%CCC_FORMATS,
 );
 
 our %REV_SUBOPTION_FORMATS = (
     $DHO_CODES{'DHO_DHCP_AGENT_OPTIONS'}    => \%REV_RELAYAGENT_FORMATS,
     $DHO_CODES{'DHO_GEOCONF'}               => \%REV_GEOCONF_FORMATS,
     $DHO_CODES{'DHO_NWIP_SUBOPTIONS'}        => \%REV_NWIP_FORMATS,
+    $DHO_CODES{'DHO_CCC'}                    => \%REV_CCC_FORMATS,
 );
 
 # Links option codes with their suboption values
@@ -847,8 +868,6 @@ Automatic parsing of DHO_VENDOR_ENCAPSULATED_OPTIONS (code 43) is unsupported.
 Automatic parsing of DHO_NWIP_SUBOPTIONS (code 63 - rfc 2242) is unsupported.
 
 Automatic parsing of DHO_USER_CLASS (code 77 - rfc 3004) is unsupported.
-
-Automatic parsing of DHO_CCC (code 122 - rfc 3495) is unsupported.
 
 =head1 SEE ALSO
 
