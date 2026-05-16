@@ -22,7 +22,7 @@ use Exporter;
 %EXPORT_TAGS = ( all => \@EXPORT_OK );
 
 use Carp qw/ carp /;
-use Net::DHCP::Packet::IPv4Utils qw( packinet unpackinet );
+use Net::DHCP::Packet::IPv4Utils qw( packinet unpackinet byte_len );
 
 #=======================================================================
 # comment attribute : enables transaction number identification
@@ -161,10 +161,9 @@ sub chaddrRaw {
 
 # sname attribute
 sub sname {
-    use bytes;
     my $self = shift;
     if (@_) { $self->{sname} = shift }
-    if ( length( $self->{sname} ) > 63 ) {
+    if ( byte_len( $self->{sname} ) > 63 ) {
         carp( sprintf q|'sname' must not be > 63 bytes, (currently %d)|,
               length( $self->{sname} ));
         $self->{sname} = substr( $self->{sname}, 0, 63 );
@@ -174,10 +173,9 @@ sub sname {
 
 # file attribute
 sub file {
-    use bytes;
     my $self = shift;
     if (@_) { $self->{file} = shift }
-    if ( length( $self->{file} ) > 127 ) {
+    if ( byte_len( $self->{file} ) > 127 ) {
         carp( sprintf q|'file' must not be > 127 bytes, (currently %d)|,
               length( $self->{file} ));
         $self->{file} = substr( $self->{file}, 0, 127 );

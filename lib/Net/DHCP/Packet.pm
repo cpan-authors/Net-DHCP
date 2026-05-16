@@ -442,7 +442,6 @@ my $BOOTP_FORMAT = 'C C C C N n n a4 a4 a4 a4 a16 Z64 Z128 a*';
 #my $DHCP_MIN_LENGTH = length(pack($BOOTP_FORMAT));
 #=======================================================================
 sub serialize {
-    use bytes;
     my ($self)  = shift;
     my $options = shift;    # reference to an options hash for special options
     my $bytes   = undef;
@@ -468,7 +467,7 @@ sub serialize {
                     $subbytes .= pack( 'C/a*', $self->{options}->{$key}->{$subkey} );
                 }
                 $bytes .= pack( 'C',    $key );
-                $bytes .= pack( 'C', length $subbytes ) . $subbytes;
+                $bytes .= pack( 'C', byte_len($subbytes) ) . $subbytes;
             } else {
                 $bytes .= pack( 'C',    $key );
                 $bytes .= pack( 'C/a*', $self->{options}->{$key} );
@@ -480,15 +479,14 @@ sub serialize {
     $bytes .= $self->{padding};    # add optional padding
 
     # add padding if packet is less than minimum size
-    my $min_padding = BOOTP_MIN_LEN() - length($bytes);
+    my $min_padding = BOOTP_MIN_LEN() - byte_len($bytes);
     if ( $min_padding > 0 ) {
         $bytes .= "\0" x $min_padding;
     }
 
-    # test if packet is not bigger than absolute maximum MTU
-    if ( length($bytes) > DHCP_MAX_MTU() ) {
+    if ( byte_len($bytes) > DHCP_MAX_MTU() ) {
         croak(  'serialize: packet too big ('
-              . length($bytes)
+              . byte_len($bytes)
               . ' greater than max MAX_MTU ('
               . DHCP_MAX_MTU() );
     }
@@ -505,9 +503,9 @@ sub serialize {
         {
 
             # relevant message size
-            if ( length($bytes) > $max_message_size ) {
+            if ( byte_len($bytes) > $max_message_size ) {
                 croak(  'serialize: message is bigger than allowed ('
-                      . length($bytes)
+                      . byte_len($bytes)
                       . '), max specified :'
                       . $max_message_size );
             }
@@ -531,34 +529,33 @@ sub min_len_handling {
 #=======================================================================
 sub marshall {
 
-    use bytes;
     my ( $self, $buf ) = @_;
     my $opt_buf;
 
     my $min_len_handling = $self->min_len_handling;
     if ( $min_len_handling != 2
-         && length($buf) < BOOTP_ABSOLUTE_MIN_LEN()
+         && byte_len($buf) < BOOTP_ABSOLUTE_MIN_LEN()
      ) {
         my $message = sprintf
             'marshall: packet too small (%d), absolute minimum size is %d',
-            length($buf),
+            byte_len($buf),
             BOOTP_ABSOLUTE_MIN_LEN();
         croak($message) unless $min_len_handling;
         warn($message);
     }
     if ( $min_len_handling != 2
-         && length($buf) < BOOTP_MIN_LEN()
+         && byte_len($buf) < BOOTP_MIN_LEN()
      ) {
         my $message = sprintf
             'marshall: packet too small (%d), minimum size is %d',
-            length($buf),
+            byte_len($buf),
             BOOTP_MIN_LEN();
         carp($message);
     }
-    if ( length($buf) > DHCP_MAX_MTU() ) {
+    if ( byte_len($buf) > DHCP_MAX_MTU() ) {
         croak( sprintf
             'marshall: packet too big (%d), max MTU size is %s',
-            length($buf),
+            byte_len($buf),
             DHCP_MAX_MTU() );
     }
 
@@ -576,7 +573,7 @@ sub marshall {
     ) = unpack( $BOOTP_FORMAT, $buf );
 
     $self->{isDhcp} = 0;    # default to BOOTP
-    if (   ( length( $opt_buf ) > 4 )
+    if (   ( byte_len( $opt_buf ) > 4 )
         && ( substr( $opt_buf, 0, 4 ) eq MAGIC_COOKIE() ) )
     {
 
@@ -729,14 +726,13 @@ sub packsuboptions {
     return pack( 'C', length($buf) ) . $buf
 }
 
-sub unpacksuboptions {     # prints a human readable suboptions
+sub unpacksuboptions {
 
-    use bytes;
     my $opt_buf = shift or return;
 
     my @relay_opt;
     my $pos   = 0;
-    my $total = length($opt_buf);
+    my $total = byte_len($opt_buf);
 
     while ( $pos < $total ) {
         my $type = ord( substr( $opt_buf, $pos++, 1 ) );
