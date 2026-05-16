@@ -6,7 +6,7 @@ use Test::Warn qw( warning_like );
 use FindBin ();
 
 BEGIN { use_ok('Net::DHCP::Packet'); }
-BEGIN { use_ok('Net::DHCP::Constants', ':htype_codes', ':dhcp_message',':dhcp_hashes' ); }
+BEGIN { use_ok('Net::DHCP::Constants', ':bootp_codes', ':htype_codes', ':dhcp_message',':dhcp_hashes' ); }
 
 use Net::Frame::Simple ();
 use Net::Frame::Dump::Offline;
@@ -17,10 +17,12 @@ my @data;
 push @data, [
     'DISCOVER',
     {
+        op      => BOOTREQUEST,
         htype   => HTYPE_ETHER,
         hlen    => 6,
         hops    => 0,
         xid     => '15645',
+        secs    => 0,
         flags   => 0,
         ciaddr  => '0.0.0.0',
         yiaddr  => '0.0.0.0',
@@ -43,10 +45,12 @@ push @data, [
 push @data, [
     'OFFER',
     {
+        op      => BOOTREPLY,
         htype   => HTYPE_ETHER,
         hlen    => 6,
         hops    => 0,
         xid     => '15645',
+        secs    => 0,
         flags   => 0,
         ciaddr  => '0.0.0.0',
         yiaddr  => '192.168.0.10',
@@ -59,11 +63,11 @@ push @data, [
         padding => '0000000000000000000000000000000000000000000000000000',
     }, {
         53 => DHCPOFFER,
-        1  => '255.255.255.0',
-        58 => 1800,
-        59 => 3150,
-        51 => 3600,
-        54 => '192.168.0.1',
+         1  => '255.255.255.0',
+         58 => 1800,
+         59 => 3150,
+         51 => 3600,
+         54 => '192.168.0.1',
     }
 ];
 
@@ -71,10 +75,12 @@ push @data, [
 push @data, [
     'REQUEST',
     {
+        op      => BOOTREQUEST,
         htype   => HTYPE_ETHER,
         hlen    => 6,
         hops    => 0,
         xid     => '15646',
+        secs    => 0,
         flags   => 0,
         ciaddr  => '0.0.0.0',
         yiaddr  => '0.0.0.0',
@@ -87,10 +93,10 @@ push @data, [
         padding => '00',
     }, {
         53 => DHCPREQUEST,
-        61 => '000b8201fc42',
-        50 => '192.168.0.10',
-        54 => '192.168.0.1',
-        55 => '1, 3, 6, 42',
+         61 => '000b8201fc42',
+         50 => '192.168.0.10',
+         54 => '192.168.0.1',
+         55 => '1, 3, 6, 42',
     }
 ];
 
@@ -98,10 +104,12 @@ push @data, [
 push @data, [
     'ACK',
     {
+        op      => BOOTREPLY,
         htype   => HTYPE_ETHER,
         hlen    => 6,
         hops    => 0,
         xid     => '15646',
+        secs    => 0,
         flags   => 0,
         ciaddr  => '0.0.0.0',
         yiaddr  => '192.168.0.10',
@@ -114,11 +122,11 @@ push @data, [
         padding => '0000000000000000000000000000000000000000000000000000',
     }, {
         53 => DHCPACK,
-        1  => '255.255.255.0',
-        58 => 1800,
-        59 => 3150,
-        51 => 3600,
-        54 => '192.168.0.1',
+         1  => '255.255.255.0',
+         58 => 1800,
+         59 => 3150,
+         51 => 3600,
+         54 => '192.168.0.1',
     },
 ];
 

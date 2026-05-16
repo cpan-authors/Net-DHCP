@@ -5,16 +5,18 @@ use Test::More tests => 3;
 use FindBin ();
 
 BEGIN { use_ok('Net::DHCP::Packet'); }
-BEGIN { use_ok('Net::DHCP::Constants'); }
+BEGIN { use_ok('Net::DHCP::Constants', ':bootp_codes'); }
 
 use Net::Frame::Simple ();
 use Net::Frame::Dump::Offline;
 
 my %values = (
+    op      => BOOTREPLY,
     htype   => 1,
     hlen    => 6,
     hops    => 1,
     xid     => 2003947397,
+    secs    => 10,
     flags   => 0,
     ciaddr  => '0.0.0.0',
     yiaddr  => '10.10.8.235',

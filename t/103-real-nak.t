@@ -1,21 +1,23 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 19;
+use Test::More tests => 21;
 use Test::Warn qw( warning_like );
 use FindBin ();
 
 BEGIN { use_ok('Net::DHCP::Packet'); }
-BEGIN { use_ok('Net::DHCP::Constants'); }
+BEGIN { use_ok('Net::DHCP::Constants', ':bootp_codes'); }
 
 use Net::Frame::Simple ();
 use Net::Frame::Dump::Offline;
 
 my %values = (
+    op      => BOOTREPLY,
     htype   => 0,
     hlen    => 0,
     hops    => 1,
     xid     => 0,
+    secs    => 0,
     flags   => 0,
     ciaddr  => '114.77.17.255',
     yiaddr  => '0.0.0.0',
