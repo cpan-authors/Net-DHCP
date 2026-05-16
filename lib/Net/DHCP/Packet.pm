@@ -13,7 +13,7 @@ use Carp;
 use Net::DHCP::Constants qw(:DEFAULT :dhcp_hashes :dhcp_other %DHO_FORMATS %SUBOPTION_FORMATS);
 use Net::DHCP::Packet::Attributes qw(:all);
 use Net::DHCP::Packet::IPv4Utils qw(:all);
-use List::Util qw(first);
+use List::Util qw(any first);
 
 #=======================================================================
 
@@ -522,8 +522,8 @@ sub min_len_handling {
     my ( $self, $level )  = @_;
     return $self->{min_len_handling} || 0 if @_ == 1;
 
-    croak( sprintf q(Invalid handle level '%s', use 0, 1, or 2.),
-        $level ) unless grep $_ eq $level, 0, 1, 2;
+    croak( sprintf q(Invalid handle level '%s', use 0, 1, or 2.), $level )
+        unless $level =~ m/^[0-9]+$/ && any { $level eq $_ } 0, 1, 2;
     $self->{min_len_handling} = $level;
 }
 
@@ -957,7 +957,7 @@ To create a fresh new packet C<new()> takes arguments as a key-value pairs :
                                name or null in DHCPDISCOVER, fully qualified
                                directory-path name in DHCPOFFER.
    IsDhcp     isDhcp        4  Controls whether the packet is BOOTP or DHCP.
-                               DHCP conatains the "magic cookie" of 4 bytes.
+                               DHCP contains the "magic cookie" of 4 bytes.
                                0x63 0x82 0x53 0x63.
    DHO_*code                   Optional parameters field.  See the options
                                documents for a list of defined options.

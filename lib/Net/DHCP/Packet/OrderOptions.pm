@@ -328,14 +328,13 @@ Minimum frame size is 300, but we only warn (carp) if its not.
 
 =item optionsorder ( )
 
-TODO This will rearrange the order of options to accomidate as many
-quirky cliens as possible.
+TODO This will rearrange the order of options to accommodate as many
+quirky clients as possible.
 
 =back
 
 =head1 SEE ALSO
 
-L<Net::DHCP>, L<Net::DHCP::Packet>, L<Net::DHCP::Constants>,
-L<dhcp-options>.
+L<Net::DHCP>, L<Net::DHCP::Packet>, L<Net::DHCP::Constants>.
 
 =cut
