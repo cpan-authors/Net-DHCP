@@ -47,7 +47,11 @@ our %EXPORT_TAGS = (
           )
     ],
     dhcp_other => [
-        qw(MAGIC_COOKIE DHCP_UDP_OVERHEAD DHCP_MAX_MTU BOOTP_MIN_LEN BOOTP_ABSOLUTE_MIN_LEN DHCP_MIN_LEN)
+        qw(MAGIC_COOKIE MAGIC_COOKIE_LEN DHCP_UDP_OVERHEAD DHCP_MAX_MTU BOOTP_MIN_LEN BOOTP_ABSOLUTE_MIN_LEN DHCP_MIN_LEN
+           ETHERNET_MAC_LEN ETHERNET_HEADER_LEN IP_HEADER_LEN UDP_HEADER_LEN
+           MAX_OPTION_DATA_LEN IPV4_MAX_PREFIX_LEN BITS_PER_BYTE
+           CLIENTID_TYPE_ETHER CLIENTID_TYPE_FQDN
+           SIPSERV_TYPE_IPV4 SIPSERV_TYPE_FQDN)
     ]
 );
 
@@ -77,13 +81,26 @@ Exporter::export_ok_tags('dhcp_other');
 Exporter::export_ok_tags('ra_codes');
 
 # MAGIC_COOKIE for DHCP (otherwise it is BOOTP)
-use constant MAGIC_COOKIE => "\x63\x82\x53\x63";
+use constant MAGIC_COOKIE     => "\x63\x82\x53\x63";
+use constant MAGIC_COOKIE_LEN => 4;
 
-use constant DHCP_UDP_OVERHEAD      => ( 14 + 20 + 8 );    # Ethernet + IP + UDP
+use constant ETHERNET_HEADER_LEN  => 14;
+use constant IP_HEADER_LEN        => 20;
+use constant UDP_HEADER_LEN       => 8;
+use constant DHCP_UDP_OVERHEAD    => ( ETHERNET_HEADER_LEN + IP_HEADER_LEN + UDP_HEADER_LEN );
 use constant DHCP_MAX_MTU           => 1500;
 use constant BOOTP_ABSOLUTE_MIN_LEN => 236;
 use constant BOOTP_MIN_LEN          => 300;
 use constant DHCP_MIN_LEN           => 548;
+
+use constant ETHERNET_MAC_LEN     => 6;
+use constant MAX_OPTION_DATA_LEN  => 255;
+use constant IPV4_MAX_PREFIX_LEN  => 32;
+use constant BITS_PER_BYTE        => 8;
+use constant CLIENTID_TYPE_FQDN   => 0;
+use constant CLIENTID_TYPE_ETHER  => 1;
+use constant SIPSERV_TYPE_FQDN    => 0;
+use constant SIPSERV_TYPE_IPV4    => 1;
 
 BEGIN {
     %BOOTP_CODES = (
