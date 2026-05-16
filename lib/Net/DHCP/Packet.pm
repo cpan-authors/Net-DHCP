@@ -204,6 +204,7 @@ sub addOptionValue {
         clientid   => sub { return packclientid(shift) },
         sipserv    => sub { return packsipserv(shift) },
         csr        => sub { return packcsr(shift) },
+        hexa       => sub { return pack('H*', shift) },
         suboptions => sub { return packsuboptions(@_) },
 
     );
@@ -366,6 +367,7 @@ sub getOptionValue {
         clientid   => sub { return unpackclientid(shift) },
         sipserv    => sub { return unpacksipserv(shift) },
         csr        => sub { return unpackcsr(shift) },
+        hexa       => sub { return unpack('H*', shift) },
         suboptions => sub { return unpacksuboptions(shift) },
 
     );
