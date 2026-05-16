@@ -202,7 +202,7 @@ sub padding {
 
 =head1 SYNOPSIS
 
-   use Net::DHCP::Packet::Attributes qw( :all );
+    use Net::DHCP::Packet::Attributes qw( :all );
 
 =head1 DESCRIPTION
 
@@ -224,8 +224,8 @@ Sets/gets the I<BOOTP opcode>.
 
 Normal values are:
 
-  BOOTREQUEST()
-  BOOTREPLY()
+    BOOTREQUEST()
+    BOOTREPLY()
 
 =item htype( [BYTE] )
 
@@ -233,35 +233,35 @@ Sets/gets the I<hardware address type>.
 
 Common value is: C<HTYPE_ETHER()> (1) = ethernet
 
-=item hlen ( [BYTE] )
+=item hlen( [BYTE] )
 
 Sets/gets the I<hardware address length>. Value must be between C<0> and C<16>.
 
 For most NIC's, the MAC address has 6 bytes.
 
-=item hops ( [BYTE] )
+=item hops( [BYTE] )
 
 Sets/gets the I<number of hops>.
 
 This field is incremented by each encountered DHCP relay agent.
 
-=item xid ( [INTEGER] )
+=item xid( [INTEGER] )
 
 Sets/gets the 32 bits I<transaction id>.
 
 This field should be a random value set by the DHCP client.
 
-=item secs ( [SHORT] )
+=item secs( [SHORT] )
 
 Sets/gets the 16 bits I<elapsed boot time> in seconds.
 
-=item flags ( [SHORT] )
+=item flags( [SHORT] )
 
 Sets/gets the 16 bits I<flags>.
 
-  0x8000 = Broadcast reply requested.
+    0x8000 = Broadcast reply requested.
 
-=item ciaddr ( [STRING] )
+=item ciaddr( [STRING] )
 
 Sets/gets the I<client IP address>.
 
@@ -270,7 +270,7 @@ IP address is only accepted as a string like '10.24.50.3'.
 Note: IP address is internally stored as a 4 bytes binary string.
 See L<SPECIAL METHODS> below.
 
-=item yiaddr ( [STRING] )
+=item yiaddr( [STRING] )
 
 Sets/gets the I<your IP address>.
 
@@ -279,7 +279,7 @@ IP address is only accepted as a string like '10.24.50.3'.
 Note: IP address is internally stored as a 4 bytes binary string.
 See L<SPECIAL METHODS> below.
 
-=item siaddr ( [STRING] )
+=item siaddr( [STRING] )
 
 Sets/gets the I<next server IP address>.
 
@@ -288,7 +288,7 @@ IP address is only accepted as a string like '10.24.50.3'.
 Note: IP address is internally stored as a 4 bytes binary string.
 See L<SPECIAL METHODS> below.
 
-=item giaddr ( [STRING] )
+=item giaddr( [STRING] )
 
 Sets/gets the I<relay agent IP address>.
 
@@ -297,41 +297,42 @@ IP address is only accepted as a string like '10.24.50.3'.
 Note: IP address is internally stored as a 4 bytes binary string.
 See L<SPECIAL METHODS> below.
 
-=item chaddr ( [STRING] )
+=item chaddr( [STRING] )
 
 Sets/gets the I<client hardware address>. Its length is given by the C<hlen> attribute.
 
 Value is formatted as an Hexadecimal string representation.
 
-  Example: "0010A706DFFF" for 6 bytes mac address.
+    Example: "0010A706DFFF" for 6 bytes mac address.
 
 Note : internal format is packed bytes string.
 See L<SPECIAL METHODS> below.
 
-=item sname ( [STRING] )
+=item sname( [STRING] )
 
 Sets/gets the "server host name". Maximum size is 63 bytes. If greater
 a warning is issued.
 
-=item file ( [STRING] )
+=item file( [STRING] )
 
 Sets/gets the "boot file name". Maximum size is 127 bytes. If greater
 a warning is issued.
 
-=item isDhcp ( [BOOLEAN] )
+=item isDhcp( [BOOLEAN] )
 
 Sets/gets the I<DHCP cookie>. Returns whether the cookie is valid or not,
 hence whether the packet is DHCP or BOOTP.
 
 Default value is C<1>, valid DHCP cookie.
 
-=item padding ( [BYTES] )
+=item padding( [BYTES] )
 
 Sets/gets the optional padding at the end of the DHCP packet, i.e. after
 DHCP options.
 
 Convert to hex with:
- unpack( 'H*', $obj->padding() )
+
+    unpack( 'H*', $obj->padding() )
 
 =back
 
@@ -342,23 +343,23 @@ to internal data representation , thus avoiding unnecessary type conversion.
 
 =over 4
 
-=item ciaddrRaw ( [STRING])
+=item ciaddrRaw( [STRING] )
 
 Sets/gets the I<client IP address> in packed 4 characters binary strings.
 
-=item yiaddrRaw ( [STRING] )
+=item yiaddrRaw( [STRING] )
 
 Sets/gets the I<your IP address> in packed 4 characters binary strings.
 
-=item siaddrRaw ( [STRING] )
+=item siaddrRaw( [STRING] )
 
 Sets/gets the I<next server IP address> in packed 4 characters binary strings.
 
-=item giaddrRaw ( [STRING] )
+=item giaddrRaw( [STRING] )
 
 Sets/gets the I<relay agent IP address> in packed 4 characters binary strings.
 
-=item chaddrRaw ( [STRING] )
+=item chaddrRaw( [STRING] )
 
 Sets/gets the I<client hardware address> in packed binary string.
 Its length is given by the C<hlen> attribute.

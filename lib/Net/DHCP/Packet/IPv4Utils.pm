@@ -78,7 +78,7 @@ sub unpackinets_array {    # multiple ip addresses, returns an array
 
 =head1 SYNOPSIS
 
-   use Net::DHCP::Packet::IPv4Utils qw( :all );
+    use Net::DHCP::Packet::IPv4Utils qw( :all );
 
 =head1 DESCRIPTION
 
@@ -89,18 +89,18 @@ Probably not at all useful on its own
 
 =over 4
 
-=item byte_len ( STRING )
+=item byte_len( STRING )
 
 Returns the length of the string in bytes (uses C<use bytes>
 internally). Returns 0 if the argument is undefined.
 
-=item packinet ( STRING )
+=item packinet( STRING )
 
 Transforms a IP address "xx.xx.xx.xx" into a packed 4 bytes string.
 
 These are simple never failing versions of inet_ntoa and inet_aton.
 
-=item packinets ( STRING )
+=item packinets( STRING )
 
 Transforms a list of space delimited IP addresses into a packed bytes string.
 
@@ -108,16 +108,16 @@ Transforms a list of space delimited IP addresses into a packed bytes string.
 
 Transforms an array (list) of IP addresses into a packed bytes string.
 
-=item unpackinet ( STRING )
+=item unpackinet( STRING )
 
 Transforms a packed bytes IP address into a "xx.xx.xx.xx" string.
 
-=item unpackinets ( STRING )
+=item unpackinets( STRING )
 
 Transforms a packed bytes list of IP addresses into a list of
 "xx.xx.xx.xx" space delimited string.
 
-=item unpackinets_array ( STRING )
+=item unpackinets_array( STRING )
 
 Transforms a packed bytes list of IP addresses into a array of
 "xx.xx.xx.xx" strings.
