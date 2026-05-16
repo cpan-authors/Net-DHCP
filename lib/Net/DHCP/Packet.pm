@@ -765,6 +765,11 @@ sub _printable {
     return $str;
 }
 
+sub _nonempty {
+    my $val = shift;
+    return defined $val && length $val;
+}
+
 sub packsuboptions {
     my @relay_opt = @_
       or return;
@@ -783,7 +788,7 @@ sub packsuboptions {
 sub unpacksuboptions {
 
     my $opt_buf = shift;
-    return unless defined $opt_buf && length $opt_buf;
+    return unless _nonempty($opt_buf);
 
     my @relay_opt;
     my $pos   = 0;
@@ -805,7 +810,7 @@ sub unpacksuboptions {
 
 sub packclientid {
     my $clientid = shift;
-    return unless defined $clientid && length $clientid;
+    return unless _nonempty($clientid);
 
     if ($clientid =~ m/^[0-9a-fA-F]{2}(?:[0-9a-fA-F]{2})*$/) {
         return pack('C', CLIENTID_TYPE_ETHER) . pack('H*', $clientid);
@@ -816,7 +821,7 @@ sub packclientid {
 sub unpackclientid {
 
     my $clientid = shift;
-    return unless defined $clientid && length $clientid;
+    return unless _nonempty($clientid);
 
 
 ## See https://tools.ietf.org/html/rfc2132#section-9.14
@@ -871,7 +876,7 @@ sub unpackclientid {
 
 sub packsipserv {
     my $sipserv = shift;
-    return unless defined $sipserv && length $sipserv;
+    return unless _nonempty($sipserv);
 
     if ($sipserv =~ m/^[0-9]{1,3}(?:\.[0-9]{1,3}){3}(?:\s+[0-9]{1,3}(?:\.[0-9]{1,3}){3})*$/) {
         return pack('C', SIPSERV_TYPE_IPV4) . packinets($sipserv);
@@ -882,7 +887,7 @@ sub packsipserv {
 sub unpacksipserv {
 
     my $sipserv = shift;
-    return unless defined $sipserv && length $sipserv;
+    return unless _nonempty($sipserv);
 
     my $type = unpack('C',substr( $sipserv, 0, 1 ));
 
@@ -931,7 +936,7 @@ sub packcsr {
 
 sub unpackcsr {
     my $csr = shift;
-    return unless defined $csr && length $csr;
+    return unless _nonempty($csr);
 
     my @routes;
     my $pos = 0;
