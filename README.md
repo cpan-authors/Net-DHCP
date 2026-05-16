@@ -13,9 +13,18 @@ Currently these files are:
 
 Some files in t/data are copied from various sources:
 - http://packetlife.net/captures/DHCP_MessageType%2010%2C11%2C12%20and%2013.cap
-- http://packetlife.net/captures/DHCP_Inter_VLAN.cap
+- http://packetlife.net/captures/DHCP_Inter_VLAN.cap (original source forgotten)
 - http://uluru.ee.unsw.edu.au/~tim/zoo/f994f275.pcap
 - https://wiki.wireshark.org/SampleCaptures?action=AttachFile&do=get&target=dhcp-auth.pcap.gz
+
+Test files referencing the above:
+- t/102-discover-offer-request-ack.t       — vanilla DORA
+- t/103-real-nak.t                         — DHCPNAK from real capture
+- t/104-offer-o90-o120.t                   — options 90, 120
+- t/105-discover-offer-o122-o82.t          — options 122, 82
+- t/106-discover-offer-o60-o43-o82.t       — options 60, 43, 82
+- t/107-query-active-qry-unass-qry-unk.t   — DHCPLEASEACTIVE / UNASSIGNED / UNKNOWN responses to DHCPINFORM
+- t/108-discover-offer-o12-o55-o61.t       — relay DORA with options 12, 55, 61
 
 All other files are licensed as described at the bottom of this file.
 
