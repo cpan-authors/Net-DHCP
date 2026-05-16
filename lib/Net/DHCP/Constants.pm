@@ -490,6 +490,7 @@ our %DHO_FORMATS = (
     DHO_SUBNET_SELECTION()             => 'inet',      # rfc 3011
 
     DHO_CLASSLESS_STATIC_ROUTE_MS()   => 'csr',
+    DHO_PACKETCABLE_DEPRECATED()       => 'hexa',      # rfc 3495
 );
 
 %RELAYAGENT_FORMATS = (
@@ -816,8 +817,6 @@ Automatic parsing of DHO_NWIP_SUBOPTIONS (code 63 - rfc 2242) is unsupported.
 Automatic parsing of DHO_USER_CLASS (code 77 - rfc 3004) is unsupported.
 
 Automatic parsing of DHO_CCC (code 122 - rfc 3495) is unsupported.
-
-Automatic parsing of DHO_PACKETCABLE_DEPRECATED (code 177 - rfc 3495) is unsupported.
 
 =head1 SEE ALSO
 
