@@ -1,12 +1,13 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 13;
+use Test::More tests => 15;
 
 BEGIN { use_ok( 'Net::DHCP::Packet' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants', ':ra_codes' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants', ':dhcp_other' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants', ':dho_codes' ); }
+BEGIN { use_ok( 'Net::DHCP::Constants', ':geoconf_codes' ); }
 
 sub pack_subopt {
     my ($type, $val) = @_;
@@ -160,4 +161,27 @@ subtest 'printable-string heuristic in toString' => sub {
         pack('C C n C C', 0x00, 0x04, 5, 1, 2));
     my $out3 = $p3->toString();
     like($out3, qr/VLAN=5/, 'structured circuit-id shown formatted in toString');
+};
+
+subtest 'geoconf suboption (123) with int/byte format' => sub {
+    plan tests => 5;
+    my $p = Net::DHCP::Packet->new();
+
+    # Does not croak
+    eval { $p->getOptionValue(123) };
+    is($@, '', 'getOptionValue(123) does not croak');
+
+    # Meters as int (u32)
+    $p->addSubOptionValue(DHO_GEOCONF(), GEO_METERS(), '100');
+    is($p->getSubOptionValue(DHO_GEOCONF(), GEO_METERS()),
+        100, 'add/get geoconf meters round-trip');
+    is($p->getSubOptionRaw(DHO_GEOCONF(), GEO_METERS()),
+        "\x00\x00\x00\x64", 'raw geoconf meters correct');
+
+    # Floors as byte
+    $p->addSubOptionValue(DHO_GEOCONF(), GEO_FLOORS(), '5');
+    is($p->getSubOptionValue(DHO_GEOCONF(), GEO_FLOORS()),
+        5, 'add/get geoconf floors round-trip');
+    is($p->getSubOptionRaw(DHO_GEOCONF(), GEO_FLOORS()),
+        "\x05", 'raw geoconf floors correct');
 };
