@@ -18,6 +18,7 @@ our ( %DHCP_MESSAGE,     %REV_DHCP_MESSAGE );
 our ( %BOOTP_CODES,      %REV_BOOTP_CODES );
 our ( %HTYPE_CODES,      %REV_HTYPE_CODES );
 our ( %NWIP_CODES,       %REV_NWIP_CODES );
+our ( %NWIP_FORMATS,     %REV_NWIP_FORMATS );
 our ( %CCC_CODES,        %REV_CCC_CODES );
 our ( %GEOCONF_CODES,    %REV_GEOCONF_CODES );
 our ( %GEOCONF_FORMATS,  %REV_GEOCONF_FORMATS );
@@ -40,6 +41,7 @@ our %EXPORT_TAGS = (
           %DHCP_MESSAGE %REV_DHCP_MESSAGE
           %BOOTP_CODES %REV_BOOTP_CODES
           %NWIP_CODES %REV_NWIP_CODES
+          %NWIP_FORMATS %REV_NWIP_FORMATS
           %CCC_CODES %REV_CCC_CODES
           %HTYPE_CODES %REV_HTYPE_CODES
           %GEOCONF_CODES %REV_GEOCONF_CODES
@@ -62,6 +64,7 @@ our @EXPORT_OK = qw(
   %DHCP_MESSAGE %REV_DHCP_MESSAGE
   %BOOTP_CODES %REV_BOOTP_CODES
   %NWIP_CODES %REV_NWIP_CODES
+  %NWIP_FORMATS %REV_NWIP_FORMATS
   %HTYPE_CODES %REV_HTYPE_CODES
   %CCC_CODES %REV_CCC_CODES
   %DHO_FORMATS
@@ -312,6 +315,20 @@ BEGIN {
         #'Unassigned' => '12-255'
     );
 
+    %NWIP_FORMATS = (
+        1  => 'byte',   # NWIP_DOES_NOT_EXIST
+        2  => 'byte',   # NWIP_EXIST_IN_OPTIONS_AREA
+        3  => 'byte',   # NWIP_EXIST_IN_SNAME_FILE
+        4  => 'byte',   # NWIP_EXIST_BUT_TOO_BIG
+        5  => 'byte',   # NWIP_NSQ_BROADCAST
+        6  => 'inet',   # NWIP_PREFERRED_DSS
+        7  => 'inet',   # NWIP_NEAREST_NWIP_SERVER
+        8  => 'byte',   # NWIP_AUTORETRIES
+        9  => 'byte',   # NWIP_AUTORETRY_SECS
+        10 => 'byte',   # NWIP_1_1
+        11 => 'inet',   # NWIP_PRIMARY_DSS
+    );
+
     # Type 122 sub option codes
     %CCC_CODES = (
         'CCC_PRIMARY_DHCP_SERVER'        => 1,
@@ -525,11 +542,13 @@ our %DHO_FORMATS = (
 our %SUBOPTION_FORMATS = (
     $DHO_CODES{'DHO_DHCP_AGENT_OPTIONS'}    => \%RELAYAGENT_FORMATS,
     $DHO_CODES{'DHO_GEOCONF'}               => \%GEOCONF_FORMATS,
+    $DHO_CODES{'DHO_NWIP_SUBOPTIONS'}        => \%NWIP_FORMATS,
 );
 
 our %REV_SUBOPTION_FORMATS = (
     $DHO_CODES{'DHO_DHCP_AGENT_OPTIONS'}    => \%REV_RELAYAGENT_FORMATS,
     $DHO_CODES{'DHO_GEOCONF'}               => \%REV_GEOCONF_FORMATS,
+    $DHO_CODES{'DHO_NWIP_SUBOPTIONS'}        => \%REV_NWIP_FORMATS,
 );
 
 # Links option codes with their suboption values
