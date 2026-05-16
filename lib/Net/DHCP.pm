@@ -16,14 +16,15 @@ __END__
 
 =head1 SYNOPSIS
 
-   use Net::DHCP::Packet;
+    use Net::DHCP::Packet;
 
-   my $p = Net::DHCP::Packet->new(
+    my $p = Net::DHCP::Packet->new(
         'Chaddr' => '000BCDEF',
-        'Xid' => 0x9F0FD,
+        'Xid'    => 0x9F0FD,
         'Ciaddr' => '0.0.0.0',
         'Siaddr' => '0.0.0.0',
-        'Hops' => 0);
+        'Hops'   => 0
+    );
 
 =head1 DESCRIPTION
 
