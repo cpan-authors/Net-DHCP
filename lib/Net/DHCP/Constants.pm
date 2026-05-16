@@ -533,8 +533,8 @@ RFC 2241, RFC 2485, RFC 2563, RFC 2937, RFC 3004, RFC 3011, RFC 3046.
 
 =head1 TAGS
 
-As mentioned above, constants can either be imported individually
-or in sets grouped by tag names. The tag names are:
+Constants can either be imported individually or in sets grouped by tag names.
+The tag names are:
 
 =over 4
 
