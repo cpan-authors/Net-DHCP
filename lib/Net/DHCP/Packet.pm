@@ -126,7 +126,18 @@ sub new {
 
 sub addOptionRaw {
     my ( $self, $key, $value_bin ) = @_;
-    $self->{options}->{$key} = $value_bin;
+    if ( $key == DHO_CLASSLESS_STATIC_ROUTE() && exists $self->{options}->{$key} ) {
+        my $existing = $self->{options}->{$key};
+        if (ref $existing eq 'ARRAY') {
+            push @$existing, $value_bin;
+        }
+        else {
+            $self->{options}->{$key} = [$existing, $value_bin];
+        }
+    }
+    else {
+        $self->{options}->{$key} = $value_bin;
+    }
     if ( none { $_ == $key } @{ $self->{options_order} } ) {
         push @{ $self->{options_order} }, $key;
     }
@@ -200,9 +211,19 @@ sub addOptionValue {
     #    # TBM bad format
 
     # decode the option if we know how, otherwise use the original value
-    $self->addOptionRaw( $code, $options{$format}
-        ? $options{$format}->(@values)
-        : $value );
+    my $encoded = $options{$format} ? $options{$format}->(@values) : $value;
+
+    # csr can return multiple chunks; store as arrayref so serialize emits
+    # one option-121 instance per chunk instead of silently dropping chunks
+    if (ref $encoded eq 'ARRAY' && @$encoded > 1) {
+        $self->{options}->{$code} = $encoded;
+        if ( none { $_ == $code } @{ $self->{options_order} } ) {
+            push @{ $self->{options_order} }, $code;
+        }
+    }
+    else {
+        $self->addOptionRaw($code, $encoded);
+    }
 
 }    # end AddOptionValue
 
@@ -321,6 +342,9 @@ sub getOptionValue {
     my $value_bin = $self->getOptionRaw($code);
 
     return unless defined $value_bin;
+
+    # flatten accumulated chunks into a single value for decoding
+    $value_bin = join('', @$value_bin) if ref $value_bin eq 'ARRAY';
 
     # my @values;
 
@@ -731,7 +755,8 @@ sub packsuboptions {
 
 sub unpacksuboptions {
 
-    my $opt_buf = shift or return;
+    my $opt_buf = shift;
+    return unless defined $opt_buf && length $opt_buf;
 
     my @relay_opt;
     my $pos   = 0;
@@ -752,14 +777,19 @@ sub unpacksuboptions {
 
 
 sub packclientid {
-   return shift
-   # croak('pack clientid field still WIP');
+    my $clientid = shift;
+    return unless defined $clientid && length $clientid;
+
+    if ($clientid =~ m/^[0-9a-fA-F]{2}(?:[0-9a-fA-F]{2})*$/) {
+        return pack('C', 1) . pack('H*', $clientid);
+    }
+    return pack('C', 0) . $clientid;
 }
 
 sub unpackclientid {
 
-    my $clientid = shift
-      or return;
+    my $clientid = shift;
+    return unless defined $clientid && length $clientid;
 
 
 ## See https://tools.ietf.org/html/rfc2132#section-9.14
@@ -813,22 +843,27 @@ sub unpackclientid {
 }
 
 sub packsipserv {
-   return shift
-   # croak('pack sipserv field still WIP');
+    my $sipserv = shift;
+    return unless defined $sipserv && length $sipserv;
+
+    if ($sipserv =~ m/^[0-9]{1,3}(?:\.[0-9]{1,3}){3}(?:\s+[0-9]{1,3}(?:\.[0-9]{1,3}){3})*$/) {
+        return pack('C', 1) . packinets($sipserv);
+    }
+    return pack('C', 0) . $sipserv;
 }
 
 sub unpacksipserv {
 
-    my $sipserv = shift
-      or return;
+    my $sipserv = shift;
+    return unless defined $sipserv && length $sipserv;
 
     my $type = unpack('C',substr( $sipserv, 0, 1 ));
 
-#    if ($type == 0) { # text
-#        return substr( $sipserv, 1, length($clientid) )
-#    }
+    if ($type == 0) { # text
+        return substr( $sipserv, 1 )
+    }
     if ($type == 1) { # ipv4
-        return unpackinet(substr( $sipserv, 1, length($sipserv) ))
+        return unpackinets(substr( $sipserv, 1, length($sipserv) ))
     }
 
     return $sipserv
@@ -836,16 +871,26 @@ sub unpacksipserv {
 }
 
 sub packcsr {
-    # catch empty value
+    my $routes = shift;
+    return [''] unless defined $routes;
+
+    if (!ref $routes) {
+        my @tokens = split ' ', $routes;
+        $routes = [];
+        while (@tokens >= 2) {
+            push @$routes, [shift(@tokens), shift(@tokens)];
+        }
+    }
+
     my $results = [ '' ];
 
-    for my $pair ( @{$_[0]} ) {
+    for my $pair ( @$routes ) {
         push @$results, ''
-            if (length($results->[-1]) > 255 - 8);
+            if (length($results->[-1]) > 255 - 9);
 
         my ($ip, $mask) = split /\//, $pair->[0];
-        $mask = '32'
-                unless (defined($mask));
+        $mask = 32
+                unless (defined($mask) && $mask <= 32);
 
         my $addr = packinet($ip);
         $addr = substr $addr, 0, int(($mask - 1)/8 + 1);
@@ -858,11 +903,53 @@ sub packcsr {
 }
 
 sub unpackcsr {
-    my $csr = shift
-      or return;
+    my $csr = shift;
+    return unless defined $csr && length $csr;
 
-   croak('unpack csr field still WIP');
+    my @routes;
+    my $pos = 0;
+    my $len = length($csr);
 
+    while ($pos < $len) {
+        my $mask = ord(substr($csr, $pos, 1));
+        $pos++;
+
+        if ($mask > 32) {
+            last;
+        }
+
+        my $addr_bytes = $mask ? int(($mask - 1) / 8) + 1 : 0;
+
+        if ($pos + $addr_bytes > $len) {
+            carp('unpackcsr: truncated CSR option (address bytes)');
+            last;
+        }
+
+        my $addr_str;
+        if ($addr_bytes) {
+            my $addr_raw = substr($csr, $pos, $addr_bytes);
+            $pos += $addr_bytes;
+            my $padded = $addr_raw . ("\x00" x (4 - $addr_bytes));
+            $addr_str = join('.', ord(substr($padded, 0, 1)), ord(substr($padded, 1, 1)),
+                                  ord(substr($padded, 2, 1)), ord(substr($padded, 3, 1))) . "/$mask";
+        }
+        else {
+            $addr_str = "0.0.0.0/$mask";
+        }
+
+        if ($pos + 4 > $len) {
+            carp('unpackcsr: truncated CSR option (router bytes)');
+            last;
+        }
+
+        my $router_raw = substr($csr, $pos, 4);
+        $pos += 4;
+        my $router_str = join('.', ord(substr($router_raw, 0, 1)), ord(substr($router_raw, 1, 1)),
+                                   ord(substr($router_raw, 2, 1)), ord(substr($router_raw, 3, 1)));
+        push @routes, $addr_str, $router_str;
+    }
+
+    return @routes;
 }
 
 #=======================================================================
@@ -1082,7 +1169,10 @@ Remove option from option list.
 
 =item I<packclientid( VALUE )>
 
-returns the packed Client-identifier (pass-through currently)
+returns the packed Client-identifier.
+
+Auto-detects format: even-length hex strings (e.g. C<"0010A706DFFF">)
+are packed as type 1 (MAC), plain text as type 0 (FQDN).
 
 See L<https://tools.ietf.org/html/rfc2132#section-9.14>
 
@@ -1103,23 +1193,33 @@ See also L<https://tools.ietf.org/html/rfc4361>
 
 =item I<packsipserv( VALUE )>
 
-returns the packed sip server field (pass-through currently)
+returns the packed sip server field.
+
+Auto-detects format: IP addresses are packed as type 1,
+domain names as type 0.
+
+See L<https://tools.ietf.org/html/rfc3361>
 
 =item I<unpacksipserv>
 
 returns the unpacked sip server.
 
 Decodes:
- type 1 as an ipv4 address
- everything is passed through
+ type 0 as a domain name string
+ type 1 as space-separated IPv4 addresses (e.g. C<"10.0.0.1 192.168.1.1">)
+ everything else is passed through
 
 =item I<packcsr( ARRAYREF )>
 
-returns the packed Classless Static Route option built from a list of CIDR style address/mask combos
+returns the packed Classless Static Route option built from a list of
+CIDR prefix/gateway pairs. Each pair is C<[prefix, gateway]> where
+C<prefix> is a CIDR string like C<"10.0.0.0/8"> and C<gateway> is an
+IPv4 string like C<"10.0.0.1">.
 
 =item I<unpackcsr>
 
-Not implemented, currently croaks.
+Returns the unpacked Classless Static Route as a list of alternating
+prefix/mask and gateway strings (e.g. C<"10.0.0.0/8", "10.0.0.1">).
 
 =item I<addOption( CODE, VALUE )>
 
