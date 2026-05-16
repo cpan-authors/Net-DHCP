@@ -562,6 +562,8 @@ sub marshall {
       if $self->{options};
     delete $self->{options_order}
       if $self->{options_order};
+    delete $self->{sub_options_order}
+      if $self->{sub_options_order};
 
     (
         $self->{op},     $self->{htype},  $self->{hlen},   $self->{hops},
