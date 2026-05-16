@@ -14,18 +14,32 @@ our ( @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS );
 use Exporter;
 @ISA       = qw(Exporter);
 @EXPORT    = qw( );
-@EXPORT_OK = qw( packinet packinets unpackinet unpackinets packinets_array unpackinets_array );
+@EXPORT_OK = qw(
+    byte_len
+    packinet
+    packinets
+    packinets_array
+    unpackinet
+    unpackinets
+    unpackinets_array
+);
 %EXPORT_TAGS = ( all => \@EXPORT_OK );
 
 use Carp;
 
 #=======================================================================
+# byte-length helper — contains the use bytes pragma in one place
+sub byte_len {
+    use bytes;
+    return defined $_[0] ? length($_[0]) : 0;
+}
+
+#=======================================================================
 # never failing versions of the "Socket" module functions
 sub packinet {    # bullet-proof version, never complains
-    use bytes;
     my $addr = shift;
 
-    if ( $addr && $addr =~ m/(\d+)\.(\d+)\.(\d+)\.(\d+)/ ) {
+    if ( $addr && $addr =~ m/([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/ ) {
         return chr($1) . chr($2) . chr($3) . chr($4);
     }
 
@@ -33,9 +47,8 @@ sub packinet {    # bullet-proof version, never complains
 }
 
 sub unpackinet {    # bullet-proof version, never complains
-    use bytes;
     my $ip = shift;
-    return '0.0.0.0' unless ( $ip && length($ip) == 4 );
+    return '0.0.0.0' unless ( $ip && byte_len($ip) == 4 );
     return
         ord( substr( $ip, 0, 1 ) ) . q|.|
       . ord( substr( $ip, 1, 1 ) ) . q|.|
@@ -81,6 +94,11 @@ Probably not at all useful on its own
 =head2 IPv4 UTILITY METHODS
 
 =over 4
+
+=item byte_len ( STRING )
+
+Returns the length of the string in bytes (uses C<use bytes>
+internally). Returns 0 if the argument is undefined.
 
 =item packinet ( STRING )
 
