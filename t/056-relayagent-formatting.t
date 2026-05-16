@@ -1,13 +1,14 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 15;
+use Test::More tests => 17;
 
 BEGIN { use_ok( 'Net::DHCP::Packet' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants', ':ra_codes' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants', ':dhcp_other' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants', ':dho_codes' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants', ':geoconf_codes' ); }
+BEGIN { use_ok( 'Net::DHCP::Constants', ':nwip_codes' ); }
 
 sub pack_subopt {
     my ($type, $val) = @_;
@@ -184,4 +185,33 @@ subtest 'geoconf suboption (123) with int/byte format' => sub {
         5, 'add/get geoconf floors round-trip');
     is($p->getSubOptionRaw(DHO_GEOCONF(), GEO_FLOORS()),
         "\x05", 'raw geoconf floors correct');
+};
+
+subtest 'nwip suboption (63) with byte/inet format' => sub {
+    plan tests => 6;
+    my $p = Net::DHCP::Packet->new();
+
+    # Flag suboption (byte)
+    $p->addSubOptionValue(DHO_NWIP_SUBOPTIONS(), NWIP_DOES_NOT_EXIST(), '1');
+    is($p->getSubOptionValue(DHO_NWIP_SUBOPTIONS(), NWIP_DOES_NOT_EXIST()),
+        1, 'nwip flag suboption round-trip');
+    is($p->getSubOptionRaw(DHO_NWIP_SUBOPTIONS(), NWIP_DOES_NOT_EXIST()),
+        "\x01", 'raw nwip flag correct');
+
+    # IP suboption (inet)
+    $p->addSubOptionValue(DHO_NWIP_SUBOPTIONS(), NWIP_PREFERRED_DSS(), '10.0.0.1');
+    is($p->getSubOptionValue(DHO_NWIP_SUBOPTIONS(), NWIP_PREFERRED_DSS()),
+        '10.0.0.1', 'nwip inet suboption round-trip');
+    is($p->getSubOptionRaw(DHO_NWIP_SUBOPTIONS(), NWIP_PREFERRED_DSS()),
+        "\x0A\x00\x00\x01", 'raw nwip inet correct');
+
+    # No croak on getOptionValue
+    eval { $p->getOptionValue(63) };
+    is($@, '', 'getOptionValue(63) does not croak');
+
+    # All suboption formats accessible
+    my $p2 = Net::DHCP::Packet->new();
+    $p2->addSubOptionValue(DHO_NWIP_SUBOPTIONS(), NWIP_1_1(), '0');
+    is($p2->getSubOptionValue(DHO_NWIP_SUBOPTIONS(), NWIP_1_1()),
+        0, 'nwip 1_1 suboption round-trip');
 };
