@@ -20,6 +20,7 @@ our ( %HTYPE_CODES,      %REV_HTYPE_CODES );
 our ( %NWIP_CODES,       %REV_NWIP_CODES );
 our ( %CCC_CODES,        %REV_CCC_CODES );
 our ( %GEOCONF_CODES,    %REV_GEOCONF_CODES );
+our ( %GEOCONF_FORMATS,  %REV_GEOCONF_FORMATS );
 our ( %RELAYAGENT_CODES, %REV_RELAYAGENT_CODES );
 our ( %RELAYAGENT_FORMATS, %REV_RELAYAGENT_FORMATS );
 our ( %SUBOPTION_CODES,  %REV_SUBOPTION_CODES );
@@ -42,6 +43,7 @@ our %EXPORT_TAGS = (
           %CCC_CODES %REV_CCC_CODES
           %HTYPE_CODES %REV_HTYPE_CODES
           %GEOCONF_CODES %REV_GEOCONF_CODES
+          %GEOCONF_FORMATS %REV_GEOCONF_FORMATS
           %RELAYAGENT_CODES %REV_RELAYAGENT_CODES
           %SUBOPTION_CODES %REV_SUBOPTION_CODES
           )
@@ -65,6 +67,7 @@ our @EXPORT_OK = qw(
   %DHO_FORMATS
   %SUBOPTION_FORMATS
   %GEOCONF_CODES %REV_GEOCONF_CODES
+  %GEOCONF_FORMATS %REV_GEOCONF_FORMATS
   %RELAYAGENT_CODES %REV_RELAYAGENT_CODES
   %SUBOPTION_CODES  %REV_SUBOPTION_CODES
   %REV_SUBOPTION_FORMATS
@@ -475,6 +478,7 @@ our %DHO_FORMATS = (
     DHO_SIP_SERVERS()                 => 'sipserv',
     DHO_CLASSLESS_STATIC_ROUTE()      => 'csr',        # rfc 3442
     DHO_CCC()                         => 'suboptions', # 122
+    DHO_GEOCONF()                     => 'suboptions', # rfc 6225
 
     # While not perfect, usage is primarily as a string.  iPXE is
     # a common use case for this option.
@@ -511,12 +515,21 @@ our %DHO_FORMATS = (
 
 %REV_RELAYAGENT_FORMATS = reverse %RELAYAGENT_FORMATS;
 
+%GEOCONF_FORMATS = (
+    GEO_METERS() => 'int',   # altitude in meters (u32)
+    GEO_FLOORS() => 'byte',  # floor number
+);
+
+%REV_GEOCONF_FORMATS = reverse %GEOCONF_FORMATS;
+
 our %SUBOPTION_FORMATS = (
     $DHO_CODES{'DHO_DHCP_AGENT_OPTIONS'}    => \%RELAYAGENT_FORMATS,
+    $DHO_CODES{'DHO_GEOCONF'}               => \%GEOCONF_FORMATS,
 );
 
 our %REV_SUBOPTION_FORMATS = (
     $DHO_CODES{'DHO_DHCP_AGENT_OPTIONS'}    => \%REV_RELAYAGENT_FORMATS,
+    $DHO_CODES{'DHO_GEOCONF'}               => \%REV_GEOCONF_FORMATS,
 );
 
 # Links option codes with their suboption values
