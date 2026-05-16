@@ -20,6 +20,10 @@ our %EXPORT_TAGS = ( all => \@EXPORT_OK );
 use Carp qw( carp );
 use Net::DHCP::Packet::IPv4Utils qw( packinet unpackinet byte_len );
 
+use constant CHADDR_MAX_LEN => 16;
+use constant SNAME_MAX_LEN  => 63;
+use constant FILE_MAX_LEN   => 127;
+
 #=======================================================================
 # comment attribute : enables transaction number identification
 sub comment {
@@ -50,9 +54,10 @@ sub hlen {
         carp( 'hlen must not be < 0 (currently ' . $self->{hlen} . ')' );
         $self->{hlen} = 0;
     }
-    if ( $self->{hlen} > 16 ) {
-        carp( 'hlen must not be > 16 (currently ' . $self->{hlen} . ')' );
-        $self->{hlen} = 16;
+    if ( $self->{hlen} > CHADDR_MAX_LEN ) {
+        carp( sprintf 'hlen must not be > %d (currently %d)',
+              CHADDR_MAX_LEN, $self->{hlen} );
+        $self->{hlen} = CHADDR_MAX_LEN;
     }
     return $self->{hlen};
 }
@@ -159,10 +164,10 @@ sub chaddrRaw {
 sub sname {
     my $self = shift;
     if (@_) { $self->{sname} = shift }
-    if ( byte_len( $self->{sname} ) > 63 ) {
-        carp( sprintf q|'sname' must not be > 63 bytes, (currently %d)|,
-              length( $self->{sname} ));
-        $self->{sname} = substr( $self->{sname}, 0, 63 );
+    if ( byte_len( $self->{sname} ) > SNAME_MAX_LEN ) {
+        carp( sprintf q|'sname' must not be > %d bytes, (currently %d)|,
+              SNAME_MAX_LEN, length( $self->{sname} ));
+        $self->{sname} = substr( $self->{sname}, 0, SNAME_MAX_LEN );
     }
     return $self->{sname};
 }
@@ -171,10 +176,10 @@ sub sname {
 sub file {
     my $self = shift;
     if (@_) { $self->{file} = shift }
-    if ( byte_len( $self->{file} ) > 127 ) {
-        carp( sprintf q|'file' must not be > 127 bytes, (currently %d)|,
-              length( $self->{file} ));
-        $self->{file} = substr( $self->{file}, 0, 127 );
+    if ( byte_len( $self->{file} ) > FILE_MAX_LEN ) {
+        carp( sprintf q|'file' must not be > %d bytes, (currently %d)|,
+              FILE_MAX_LEN, length( $self->{file} ));
+        $self->{file} = substr( $self->{file}, 0, FILE_MAX_LEN );
     }
     return $self->{file};
 }

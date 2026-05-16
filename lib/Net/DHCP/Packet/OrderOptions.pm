@@ -11,6 +11,12 @@ use Exporter 'import';
 our @EXPORT_OK = qw( reorder_options );
 our %EXPORT_TAGS = ( all => \@EXPORT_OK );
 
+use Net::DHCP::Constants qw(
+    DHO_VENDOR_CLASS_IDENTIFIER
+    DHO_VENDOR_ENCAPSULATED_OPTIONS
+    DHO_DHCP_AGENT_OPTIONS
+);
+
 #=======================================================================
 sub reorder_options {
     my @codes = @_;
@@ -18,16 +24,16 @@ sub reorder_options {
     # Quirk: Intel PXE wants option 60 before option 43
     my ( $i60, $i43 );
     for ( my $i = 0; $i < @codes; $i++ ) {
-        $i60 = $i if $codes[$i] == 60;
-        $i43 = $i if $codes[$i] == 43;
+        $i60 = $i if $codes[$i] == DHO_VENDOR_CLASS_IDENTIFIER();
+        $i43 = $i if $codes[$i] == DHO_VENDOR_ENCAPSULATED_OPTIONS();
     }
     if ( defined $i60 && defined $i43 && $i60 > $i43 ) {
         @codes[ $i60, $i43 ] = @codes[ $i43, $i60 ];
     }
 
     # Quirk: Cablelabs want option 82 at the very end
-    my @no82 = grep { $_ != 82 } @codes;
-    @codes = ( @no82, 82 ) if @no82 != @codes;
+    my @no82 = grep { $_ != DHO_DHCP_AGENT_OPTIONS() } @codes;
+    @codes = ( @no82, DHO_DHCP_AGENT_OPTIONS() ) if @no82 != @codes;
 
     return @codes
 }

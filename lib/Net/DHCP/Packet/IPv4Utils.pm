@@ -12,6 +12,8 @@ package Net::DHCP::Packet::IPv4Utils;
 use Exporter 'import';
 our @EXPORT_OK = qw(
     byte_len
+    IPV4_LEN
+    NULL_IP
     packinet
     packinets
     packinets_array
@@ -20,6 +22,9 @@ our @EXPORT_OK = qw(
     unpackinets_array
 );
 our %EXPORT_TAGS = ( all => \@EXPORT_OK );
+
+use constant IPV4_LEN => 4;
+use constant NULL_IP  => "\x00\x00\x00\x00";
 
 #=======================================================================
 # byte-length helper — contains the use bytes pragma in one place
@@ -37,12 +42,12 @@ sub packinet {    # bullet-proof version, never complains
         return chr($1) . chr($2) . chr($3) . chr($4);
     }
 
-    return "\0\0\0\0"
+    return NULL_IP
 }
 
 sub unpackinet {    # bullet-proof version, never complains
     my $ip = shift;
-    return '0.0.0.0' unless ( $ip && byte_len($ip) == 4 );
+    return '0.0.0.0' unless ( $ip && byte_len($ip) == IPV4_LEN );
     return
         ord( substr( $ip, 0, 1 ) ) . q|.|
       . ord( substr( $ip, 1, 1 ) ) . q|.|

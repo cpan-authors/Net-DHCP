@@ -14,6 +14,7 @@ use Net::DHCP::Constants qw(
     :DEFAULT
     :dhcp_hashes
     :dhcp_other
+    :htype_codes
     %DHO_FORMATS
     %SUBOPTION_FORMATS
 );
@@ -22,6 +23,9 @@ use Net::DHCP::Packet::IPv4Utils qw(:all);
 use Net::DHCP::Packet::OrderOptions qw( reorder_options );
 use List::Util qw(any first none);
 
+my $UINT8_MASK = 255;
+my $OPTION_VALUE_SPLIT = qr/[\s\/,;]+/;
+my $CSR_MAX_ENTRY_SIZE = 9;
 
 #=======================================================================
 
@@ -61,16 +65,16 @@ sub new {
         # defaults
         comment => undef,
         op      => BOOTREQUEST(),
-        htype   => 1,    # 10mb ethernet
-        hlen    => 6,    # Use 6 bytes MAC
+        htype   => HTYPE_ETHER(),
+        hlen    => ETHERNET_MAC_LEN,
         hops    => 0,
         xid     => 0x12345678,
         secs    => 0,
         flags   => 0,
-        ciaddr  => "\0\0\0\0",
-        yiaddr  => "\0\0\0\0",
-        siaddr  => "\0\0\0\0",
-        giaddr  => "\0\0\0\0",
+        ciaddr  => NULL_IP,
+        yiaddr  => NULL_IP,
+        siaddr  => NULL_IP,
+        giaddr  => NULL_IP,
         chaddr  => q||,
         sname   => q||,
         file    => q||,
@@ -165,8 +169,7 @@ sub addOptionValue {
     # decompose input value into an array
     my @values;
     if ( defined $value && $value ne q|| ) {
-        @values =
-          split( /[\s\/,;]+/, $value );    # array of values, split by space
+        @values = split( $OPTION_VALUE_SPLIT, $value );
     }
 
     # verify number of parameters
@@ -193,10 +196,9 @@ sub addOptionValue {
         inets2 => sub { return packinets_array(@_) },
         int    => sub { return pack( 'N', shift ) },
         short  => sub { return pack( 'n', shift ) },
-        # 255 & trims the input to single octet
-        byte   => sub { return pack( 'C', 255 & shift ) },
+        byte   => sub { return pack( 'C', $UINT8_MASK & shift ) },
         bytes  => sub {
-            return pack( 'C*', map { 255 & $_ } @_ );
+            return pack( 'C*', map { $UINT8_MASK & $_ } @_ );
         },
         string     => sub { return shift },
         clientid   => sub { return packclientid(shift) },
@@ -268,8 +270,7 @@ sub addSubOptionValue {
     # decompose input value into an array
     my @values;
     if ( defined $value && $value ne q|| ) {
-        @values =
-          split( /[\s\/,;]+/, $value );    # array of values, split by space
+        @values = split( $OPTION_VALUE_SPLIT, $value );
     }
 
     # verify number of parameters
@@ -298,10 +299,9 @@ sub addSubOptionValue {
         inets2 => sub { return packinets_array(@_) },
         int    => sub { return pack( 'N', shift ) },
         short  => sub { return pack( 'n', shift ) },
-        byte   => sub { return pack( 'C', 255 & shift ) }
-        ,    # 255 & trims the input to single octet
+        byte   => sub { return pack( 'C', $UINT8_MASK & shift ) },
         bytes => sub {
-            return pack( 'C*', map { 255 & $_ } @_ );
+            return pack( 'C*', map { $UINT8_MASK & $_ } @_ );
         },
         string => sub { return shift },
         hexa => sub { return pack( 'H*', shift ) },
@@ -495,7 +495,7 @@ sub serialize {
                 $bytes .= pack( 'C/a*', $self->{options}->{$key} );
             }
         }
-        $bytes .= pack( 'C', 255 );
+        $bytes .= pack( 'C', DHO_END() );
     }
 
     $bytes .= $self->{padding};    # add optional padding
@@ -597,14 +597,14 @@ sub marshall {
     ) = unpack( $BOOTP_FORMAT, $buf );
 
     $self->{isDhcp} = 0;    # default to BOOTP
-    if (   ( byte_len( $opt_buf ) > 4 )
-        && ( substr( $opt_buf, 0, 4 ) eq MAGIC_COOKIE() ) )
+    if (   ( byte_len( $opt_buf ) > MAGIC_COOKIE_LEN() )
+        && ( substr( $opt_buf, 0, MAGIC_COOKIE_LEN() ) eq MAGIC_COOKIE() ) )
     {
 
         # it is definitely DHCP
         $self->{isDhcp} = 1;
 
-        my $pos   = 4;     # Skip magic cookie
+        my $pos   = MAGIC_COOKIE_LEN();
         my $total = length($opt_buf);
         my $type;
 
@@ -781,9 +781,9 @@ sub packclientid {
     return unless defined $clientid && length $clientid;
 
     if ($clientid =~ m/^[0-9a-fA-F]{2}(?:[0-9a-fA-F]{2})*$/) {
-        return pack('C', 1) . pack('H*', $clientid);
+        return pack('C', CLIENTID_TYPE_ETHER) . pack('H*', $clientid);
     }
-    return pack('C', 0) . $clientid;
+    return pack('C', CLIENTID_TYPE_FQDN) . $clientid;
 }
 
 sub unpackclientid {
@@ -804,12 +804,12 @@ sub unpackclientid {
 
     my $type = unpack('C',substr( $clientid, 0, 1 ));
 
-    if ($type == 0) { # fqdn i.e. text
+    if ($type == CLIENTID_TYPE_FQDN) {
         return substr( $clientid, 1, length($clientid) )
     }
 
     # Types from here on down are from 'Address Resolution Protocol' section in RFC1700
-    if ($type == 1) { # ethernet
+    if ($type == CLIENTID_TYPE_ETHER) {
         return unpack('H*',substr( $clientid, 1, length($clientid) ))
     }
 
@@ -847,9 +847,9 @@ sub packsipserv {
     return unless defined $sipserv && length $sipserv;
 
     if ($sipserv =~ m/^[0-9]{1,3}(?:\.[0-9]{1,3}){3}(?:\s+[0-9]{1,3}(?:\.[0-9]{1,3}){3})*$/) {
-        return pack('C', 1) . packinets($sipserv);
+        return pack('C', SIPSERV_TYPE_IPV4) . packinets($sipserv);
     }
-    return pack('C', 0) . $sipserv;
+    return pack('C', SIPSERV_TYPE_FQDN) . $sipserv;
 }
 
 sub unpacksipserv {
@@ -859,10 +859,10 @@ sub unpacksipserv {
 
     my $type = unpack('C',substr( $sipserv, 0, 1 ));
 
-    if ($type == 0) { # text
+    if ($type == SIPSERV_TYPE_FQDN) {
         return substr( $sipserv, 1 )
     }
-    if ($type == 1) { # ipv4
+    if ($type == SIPSERV_TYPE_IPV4) {
         return unpackinets(substr( $sipserv, 1, length($sipserv) ))
     }
 
@@ -886,14 +886,14 @@ sub packcsr {
 
     for my $pair ( @$routes ) {
         push @$results, ''
-            if (length($results->[-1]) > 255 - 9);
+            if (length($results->[-1]) > MAX_OPTION_DATA_LEN - $CSR_MAX_ENTRY_SIZE);
 
         my ($ip, $mask) = split /\//, $pair->[0];
-        $mask = 32
-                unless (defined($mask) && $mask <= 32);
+        $mask = IPV4_MAX_PREFIX_LEN()
+                unless (defined($mask) && $mask <= IPV4_MAX_PREFIX_LEN());
 
         my $addr = packinet($ip);
-        $addr = substr $addr, 0, int(($mask - 1)/8 + 1);
+        $addr = substr $addr, 0, int(($mask - 1)/BITS_PER_BYTE + 1);
 
         $results->[-1] .= pack('C', $mask) . $addr;
         $results->[-1] .= packinet($pair->[1]);
@@ -914,11 +914,11 @@ sub unpackcsr {
         my $mask = ord(substr($csr, $pos, 1));
         $pos++;
 
-        if ($mask > 32) {
+        if ($mask > IPV4_MAX_PREFIX_LEN) {
             last;
         }
 
-        my $addr_bytes = $mask ? int(($mask - 1) / 8) + 1 : 0;
+        my $addr_bytes = $mask ? int(($mask - 1) / BITS_PER_BYTE) + 1 : 0;
 
         if ($pos + $addr_bytes > $len) {
             carp('unpackcsr: truncated CSR option (address bytes)');
@@ -929,7 +929,7 @@ sub unpackcsr {
         if ($addr_bytes) {
             my $addr_raw = substr($csr, $pos, $addr_bytes);
             $pos += $addr_bytes;
-            my $padded = $addr_raw . ("\x00" x (4 - $addr_bytes));
+            my $padded = $addr_raw . ("\x00" x (IPV4_LEN - $addr_bytes));
             $addr_str = join('.', ord(substr($padded, 0, 1)), ord(substr($padded, 1, 1)),
                                   ord(substr($padded, 2, 1)), ord(substr($padded, 3, 1))) . "/$mask";
         }
@@ -937,13 +937,13 @@ sub unpackcsr {
             $addr_str = "0.0.0.0/$mask";
         }
 
-        if ($pos + 4 > $len) {
+        if ($pos + IPV4_LEN > $len) {
             carp('unpackcsr: truncated CSR option (router bytes)');
             last;
         }
 
-        my $router_raw = substr($csr, $pos, 4);
-        $pos += 4;
+        my $router_raw = substr($csr, $pos, IPV4_LEN);
+        $pos += IPV4_LEN;
         my $router_str = join('.', ord(substr($router_raw, 0, 1)), ord(substr($router_raw, 1, 1)),
                                    ord(substr($router_raw, 2, 1)), ord(substr($router_raw, 3, 1)));
         push @routes, $addr_str, $router_str;
