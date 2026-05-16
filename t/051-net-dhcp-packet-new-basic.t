@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 33;
+use Test::More tests => 6;
 use Test::Warn qw( warnings_are );
 
 BEGIN { use_ok('Net::DHCP::Packet'); }
@@ -28,6 +28,9 @@ my $ref_packet = pack( 'H*',
       . '0000000000000000000000000000000000000000000000000000000000000000'
       . '0000000000000000000000000000000000000000000000000000000000000000'
       . '0000' );
+
+subtest 'constructor with field args' => sub {
+plan tests => 1;
 
 my $packet;
 warnings_are {
@@ -60,14 +63,19 @@ warnings_are {
     q|'file' must not be > 127 bytes, (currently 200)|,
     q|'sname' must not be > 63 bytes, (currently 200)|,
 ];
+};
 
 my $packet2 = Net::DHCP::Packet->new($ref_packet);
 
-#diag($packet2->toString());
-#diag(unpack("H*", $packet->serialize()));
+subtest 'reference packet serialization' => sub {
+plan tests => 1;
 is( $packet2->serialize(), $ref_packet, 'comparing with reference packet' );
+};
 
 $pac = Net::DHCP::Packet->new($ref_packet);
+
+subtest 'field accessors' => sub {
+plan tests => 21;
 is( $pac->comment(), undef, 'comparing each attribute' );
 is( $pac->op(),      BOOTREQUEST() );
 is( $pac->htype(),   HTYPE_ETHER() );
@@ -90,7 +98,10 @@ is( $pac->sname(), substr( $str200, 0, 63 ) );
 is( $pac->file(),  substr( $str200, 0, 127 ) );
 is( $pac->padding(), "\x00" x 256 );
 is( $pac->isDhcp(),  1 );
+};
 
+subtest 'option values' => sub {
+plan tests => 8;
 is( $pac->getOptionValue( DHO_DHCP_MESSAGE_TYPE() ),      DHCPDISCOVER() );
 is( $pac->getOptionValue( DHO_DHCP_SERVER_IDENTIFIER() ), '12.34.56.68' );
 is( $pac->getOptionValue( DHO_DHCP_LEASE_TIME() ),        86400 );
@@ -99,3 +110,4 @@ is( $pac->getOptionValue( DHO_ROUTERS() ),                '10.0.0.254' );
 is( $pac->getOptionValue( DHO_STATIC_ROUTES() ), '22.33.44.55, 10.0.0.254' );
 is( $pac->getOptionValue( DHO_WWW_SERVER() ),    '10.0.0.6' );
 is( $pac->getOptionValue( DHO_IRC_SERVER() ),    undef );
+};

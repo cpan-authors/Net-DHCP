@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 25;
+use Test::More tests => 3;
 use FindBin ();
 
 BEGIN { use_ok('Net::DHCP::Packet'); }
@@ -50,6 +50,8 @@ my $oDump = Net::Frame::Dump::Offline->new(
 
 $oDump->start;
 
+subtest 'OFFER with options 90/120' => sub {
+
 my $h = $oDump->next;
 my $f = Net::Frame::Simple->new(
     raw        => $h->{raw},
@@ -60,21 +62,17 @@ $f->unpack;
 
 my $dhcp = Net::DHCP::Packet->new($f->ref->{UDP}->payload);
 
-$oDump->stop;
-
 for my $key (sort keys %values) {
-
     is( $dhcp->$key, $values{$key}, "Checking $key is $values{$key}" );
-
 }
 
 for my $key (sort keys %options) {
-
     is( $dhcp->getOptionValue($key), $options{$key}, "Checking $key is $options{$key}" );
-
 }
 
-print $dhcp->toString;
+};
+
+$oDump->stop;
 
 1
 

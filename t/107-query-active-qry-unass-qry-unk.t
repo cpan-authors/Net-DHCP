@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 98;
+use Test::More tests => 8;
 use Test::Warn qw( warning_like );
 use FindBin ();
 
@@ -13,136 +13,142 @@ use Net::Frame::Dump::Offline;
 
 my @data;
 
-# packet 1
+# packet 1 — DHCPINFORM 3788063565
 push @data, [
-{
-    htype   => 0,
-    hlen    => 0,
-    hops    => 0,
-    xid     => '3788063565',
-    flags   => 0,
-    ciaddr  => '1.1.1.2',
-    yiaddr  => '0.0.0.0',
-    siaddr  => '0.0.0.0',
-    giaddr  => '10.10.39.14',
-    chaddr  => '00000000000000000000000000000000',
-    sname   => '',
-    file    => '',
-    isDhcp  => 1,
-    padding => '',
-}, {
-    53 => 10,
-},
+    'DHCPINFORM (3788063565)',
+    {
+        htype   => 0,
+        hlen    => 0,
+        hops    => 0,
+        xid     => '3788063565',
+        flags   => 0,
+        ciaddr  => '1.1.1.2',
+        yiaddr  => '0.0.0.0',
+        siaddr  => '0.0.0.0',
+        giaddr  => '10.10.39.14',
+        chaddr  => '00000000000000000000000000000000',
+        sname   => '',
+        file    => '',
+        isDhcp  => 1,
+        padding => '',
+    }, {
+        53 => 10,
+    },
 ];
 
-# packet 2
+# packet 2 — DHCPLEASEUNASSIGNED
 push @data, [
-{
-    htype   => 1,
-    hlen    => 6,
-    hops    => 0,
-    xid     => '3788063565',
-    flags   => 0,
-    ciaddr  => '1.1.1.2',
-    yiaddr  => '0.0.0.0',
-    siaddr  => '0.0.0.0',
-    giaddr  => '10.10.39.14',
-    chaddr  => '02020101010200000000000000000000',
-    sname   => '',
-    file    => '',
-    isDhcp  => 1,
-    padding => '',
-}, {
-    53 => 13,
-}
+    'DHCPLEASEUNASSIGNED',
+    {
+        htype   => 1,
+        hlen    => 6,
+        hops    => 0,
+        xid     => '3788063565',
+        flags   => 0,
+        ciaddr  => '1.1.1.2',
+        yiaddr  => '0.0.0.0',
+        siaddr  => '0.0.0.0',
+        giaddr  => '10.10.39.14',
+        chaddr  => '02020101010200000000000000000000',
+        sname   => '',
+        file    => '',
+        isDhcp  => 1,
+        padding => '',
+    }, {
+        53 => 13,
+    }
 ];
 
-# packet 3
+# packet 3 — DHCPINFORM 3804840781
 push @data, [
-{
-    htype   => 0,
-    hlen    => 0,
-    hops    => 0,
-    xid     => '3804840781',
-    flags   => 0,
-    ciaddr  => '1.1.1.3',
-    yiaddr  => '0.0.0.0',
-    siaddr  => '0.0.0.0',
-    giaddr  => '10.10.39.14',
-    chaddr  => '00000000000000000000000000000000',
-    sname   => '',
-    file    => '',
-    isDhcp  => 1,
-    padding => '',
-}, {
-    53 => 10,
-}
+    'DHCPINFORM (3804840781)',
+    {
+        htype   => 0,
+        hlen    => 0,
+        hops    => 0,
+        xid     => '3804840781',
+        flags   => 0,
+        ciaddr  => '1.1.1.3',
+        yiaddr  => '0.0.0.0',
+        siaddr  => '0.0.0.0',
+        giaddr  => '10.10.39.14',
+        chaddr  => '00000000000000000000000000000000',
+        sname   => '',
+        file    => '',
+        isDhcp  => 1,
+        padding => '',
+    }, {
+        53 => 10,
+    }
 ];
 
-# packet 4
+# packet 4 — DHCPLEASEACTIVE
 push @data, [
-{
-    htype   => 0,
-    hlen    => 0,
-    hops    => 0,
-    xid     => '3804840781',
-    flags   => 0,
-    ciaddr  => '1.1.1.3',
-    yiaddr  => '0.0.0.0',
-    siaddr  => '0.0.0.0',
-    giaddr  => '10.10.39.14',
-    chaddr  => '00000000000000000000000000000000',
-    sname   => '',
-    file    => '',
-    isDhcp  => 1,
-    padding => '',
-}, {
-    53 => 11,
-},
+    'DHCPLEASEACTIVE',
+    {
+        htype   => 0,
+        hlen    => 0,
+        hops    => 0,
+        xid     => '3804840781',
+        flags   => 0,
+        ciaddr  => '1.1.1.3',
+        yiaddr  => '0.0.0.0',
+        siaddr  => '0.0.0.0',
+        giaddr  => '10.10.39.14',
+        chaddr  => '00000000000000000000000000000000',
+        sname   => '',
+        file    => '',
+        isDhcp  => 1,
+        padding => '',
+    }, {
+        53 => 11,
+    },
 ];
 
-# packet 5
+# packet 5 — DHCPINFORM 3821617997
 push @data, [
-{
-    htype   => 0,
-    hlen    => 0,
-    hops    => 0,
-    xid     => '3821617997',
-    flags   => 0,
-    ciaddr  => '1.1.1.11',
-    yiaddr  => '0.0.0.0',
-    siaddr  => '0.0.0.0',
-    giaddr  => '10.10.39.14',
-    chaddr  => '00000000000000000000000000000000',
-    sname   => '',
-    file    => '',
-    isDhcp  => 1,
-    padding => '',
-}, {
-    53 => 10,
-}
+    'DHCPINFORM (3821617997)',
+    {
+        htype   => 0,
+        hlen    => 0,
+        hops    => 0,
+        xid     => '3821617997',
+        flags   => 0,
+        ciaddr  => '1.1.1.11',
+        yiaddr  => '0.0.0.0',
+        siaddr  => '0.0.0.0',
+        giaddr  => '10.10.39.14',
+        chaddr  => '00000000000000000000000000000000',
+        sname   => '',
+        file    => '',
+        isDhcp  => 1,
+        padding => '',
+    }, {
+        53 => 10,
+    }
 ];
 
-# packet 6
+# packet 6 — DHCPLEASEUNKNOWN
 push @data, [
-{
-    htype   => 0,
-    hlen    => 0,
-    hops    => 0,
-    xid     => '3821617997',
-    flags   => 0,
-    ciaddr  => '1.1.1.11',
-    yiaddr  => '0.0.0.0',
-    siaddr  => '0.0.0.0',
-    giaddr  => '10.10.39.14',
-    chaddr  => '00000000000000000000000000000000',
-    sname   => '',
-    file    => '',
-    isDhcp  => 1,
-    padding => '',
-}, {
-    53 => 12,
-}
+    'DHCPLEASEUNKNOWN',
+    {
+        htype   => 0,
+        hlen    => 0,
+        hops    => 0,
+        xid     => '3821617997',
+        flags   => 0,
+        ciaddr  => '1.1.1.11',
+        yiaddr  => '0.0.0.0',
+        siaddr  => '0.0.0.0',
+        giaddr  => '10.10.39.14',
+        chaddr  => '00000000000000000000000000000000',
+        sname   => '',
+        file    => '',
+        isDhcp  => 1,
+        padding => '',
+    }, {
+        53 => 12,
+    }
 ];
 
 #
@@ -154,11 +160,7 @@ my $oDump = Net::Frame::Dump::Offline->new(
 
 $oDump->start;
 
-my $count = 0;
-
 while (my $h = $oDump->next) {
-
-$count++;
 
 my $f = Net::Frame::Simple->new(
     raw        => $h->{raw},
@@ -167,35 +169,28 @@ my $f = Net::Frame::Simple->new(
 );
 $f->unpack;
 
-my (%values,%options);
+my $foo = shift @data;
+my $name = $foo->[0];
+my %values = %{$foo->[1]};
+my %options = %{$foo->[2]};
 
-{
-    my $foo =  shift @data;
-    %values  = %{$foo->[0]};
-    %options = %{$foo->[1]};
-}
+subtest $name => sub {
 
 my $dhcp;
 warning_like { $dhcp = Net::DHCP::Packet->new($f->ref->{UDP}->payload) }
     qr/too small/i, 'packet is actually a little small';
 
 for my $key (sort keys %values) {
-
     is( $dhcp->$key, $values{$key}, "Checking $key is $values{$key}" );
-
 }
 
 for my $key (sort keys %options) {
-
     is( $dhcp->getOptionValue($key), $options{$key}, "Checking $key is $options{$key}" );
-
 }
 
-# print $dhcp->toString;
+};
 
 }
-
-# print "count: $count\n";
 
 $oDump->stop;
 

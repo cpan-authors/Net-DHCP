@@ -1,32 +1,29 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 12;
+use Test::More tests => 6;
 
 BEGIN { use_ok( 'Net::DHCP::Packet' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants' ); }
 
-my $ip0 = '0.0.0.0';
-my $pac0 = "\0\0\0\0";
+subtest 'marshall validation' => sub {
+plan tests => 4;
 
 my $pac;
 
 eval {
   $pac = Net::DHCP::Packet->new('');
 };
-#diag($@);
 like( $@, qr/marshall: packet too small/, "packet too small");
 
 eval {
   $pac = Net::DHCP::Packet->new("\0" x 2000);
 };
-#diag($@);
 like( $@, qr/marshall: packet too big/, 'packet too big');
 
 eval {
   $pac = Net::DHCP::Packet->new( Net::DHCP::Packet->new()->serialize());
 };
-#diag($@);
 ok( ! $@, 'verifying default packet');
 
 my $pac_without_option_end = pack('H*',
@@ -44,24 +41,29 @@ my $pac_without_option_end = pack('H*',
 eval {
   $pac = Net::DHCP::Packet->new($pac_without_option_end);
 };
-#diag($@);
 like( $@, qr/marshall: unexpected end of options/, 'marshall: unexpected end of options');
+};
 
+subtest 'odd number of arguments' => sub {
+plan tests => 1;
 eval {
-  $pac = Net::DHCP::Packet->new(54, "foo", 55);
+  my $pac = Net::DHCP::Packet->new(54, "foo", 55);
 };
 like( $@, qr/odd number of arguments/, 'new: odd number of arguments');
+};
 
-# now test serialize
-$pac = Net::DHCP::Packet->new();
+subtest 'serialize validation' => sub {
+plan tests => 1;
+my $pac = Net::DHCP::Packet->new();
 $pac->padding("\0" x 2000);
 eval {
   $pac->serialize();
 };
-#diag($@);
 like($@, qr/serialize: packet too big/, "serialize: packet too big");
+};
 
-# testing DHO_DHCP_MAX_MESSAGE_SIZE conformance
+subtest 'DHO_DHCP_MAX_MESSAGE_SIZE conformance' => sub {
+plan tests => 4;
 my %options = ( DHO_DHCP_MAX_MESSAGE_SIZE() => 200);
 my $ref_pac = pack("H*",
 "0101060012345678000000000000000000000000000000000000000000000000".
@@ -75,27 +77,24 @@ my $ref_pac = pack("H*",
 "0000000000000000000000000000000000000000000000000000000000000000".
 "00000000000000000000000000000000"
 );
-$pac = Net::DHCP::Packet->new($ref_pac);
+my $pac = Net::DHCP::Packet->new($ref_pac);
 eval {
   $pac->serialize(\%options);
 };
-#diag($@);
 ok( ! $@, "DHO_DHCP_MAX_MESSAGE_SIZE too small");
 $options{DHO_DHCP_MAX_MESSAGE_SIZE()} = 2000;
 eval {
   $pac->serialize(\%options);
 };
-#diag($@);
 ok( ! $@, "DHO_DHCP_MAX_MESSAGE_SIZE too big");
 $options{DHO_DHCP_MAX_MESSAGE_SIZE()} = 305;
 eval {
   $pac->serialize(\%options);
 };
-#diag($@);
 ok( ! $@, "DHO_DHCP_MAX_MESSAGE_SIZE is ok");
 $options{DHO_DHCP_MAX_MESSAGE_SIZE()} = 302;
 eval {
   $pac->serialize(\%options);
 };
-#diag($@);
 like($@, qr/serialize: message is bigger than allowed/, "serialize: packet too big");
+};
