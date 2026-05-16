@@ -256,14 +256,16 @@ sub addSubOptionValue {
     carp(
 "addSubOptionValue: unknown format for subcode ($subcode) on code ($code)"
       )
-      unless ( $DHO_FORMATS{$code} eq 'suboptions' );
+      unless exists $SUBOPTION_FORMATS{$code}
+          && exists $SUBOPTION_FORMATS{$code}->{$subcode};
 
     carp("addSubOptionValue: no suboptions defined for code ($code)?")
       unless exists $SUBOPTION_CODES{$code};
 
     carp(
         "addSubOptionValue: suboption ($subcode) not defined for code ($code)?")
-      unless exists $SUBOPTION_CODES{$code}->{$subcode};
+      unless exists $REV_SUBOPTION_CODES{$code}
+          && exists $REV_SUBOPTION_CODES{$code}->{$subcode};
 
     my $format = $SUBOPTION_FORMATS{$code}->{$subcode};
 
@@ -447,7 +449,9 @@ sub removeSubOption {
         && ref $self->{options}->{$code} eq 'HASH'
         && exists $self->{options}->{$code}->{$subcode}) {
         delete $self->{options}->{$code}->{$subcode};
-        @{ $self->{sub_options_order}->{$code} } = grep { $_ != $subcode } @{ $self->{sub_options_order}->{$code} };
+        if (exists $self->{sub_options_order}->{$code}) {
+            @{ $self->{sub_options_order}->{$code} } = grep { $_ != $subcode } @{ $self->{sub_options_order}->{$code} };
+        }
         unless (keys %{ $self->{options}->{$code} }) {
             delete $self->{options}->{$code};
             delete $self->{sub_options_order}->{$code};
@@ -604,22 +608,7 @@ sub marshall {
         # it is definitely DHCP
         $self->{isDhcp} = 1;
 
-        my $pos   = MAGIC_COOKIE_LEN();
-        my $total = length($opt_buf);
-        my $type;
-
-        while ( $pos < $total ) {
-
-            $type = ord( substr( $opt_buf, $pos++, 1 ) );
-            next if ( $type eq DHO_PAD() );  # Skip padding bytes
-            last if ( $type eq DHO_END() );  # Type 'FF' signals end of options.
-            my $len = ord( substr( $opt_buf, $pos++, 1 ) );
-            $len = $total - $pos if $pos + $len > $total;
-            my $option = substr( $opt_buf, $pos, $len );
-            $pos += $len;
-            $self->addOptionRaw( $type, $option );
-
-        }
+        my ($type, $pos) = $self->_parse_option_buffer($opt_buf, MAGIC_COOKIE_LEN());
 
         # verify that we ended with an "END" code
         if ( $type != DHO_END() ) {
@@ -627,11 +616,31 @@ sub marshall {
         }
 
         # put remaining bytes in the padding attribute
-        if ( $pos < $total ) {
-            $self->{padding} = substr( $opt_buf, $pos, $total - $pos );
+        if ( $pos < length($opt_buf) ) {
+            $self->{padding} = substr( $opt_buf, $pos );
         }
         else {
             $self->{padding} = q||;
+        }
+
+        # handle option 52 (DHO_DHCP_OPTION_OVERLOAD)
+        my $overload = $self->getOptionRaw(DHO_DHCP_OPTION_OVERLOAD());
+        if (defined $overload) {
+            my $ov = unpack('C', $overload);
+            # RFC 2132 §9.3: bit 0 (1)=file, bit 1 (2)=sname
+            if ($ov & 2) {
+                $self->_parse_option_buffer(substr($buf, 44, 64));
+                $self->{sname} = '';
+            }
+            if ($ov & 1) {
+                $self->_parse_option_buffer(substr($buf, 108, 128));
+                $self->{file} = '';
+            }
+            # remove option 52 — overloaded options now in main hash
+            delete $self->{options}->{DHO_DHCP_OPTION_OVERLOAD()};
+            @{ $self->{options_order} } =
+                grep { $_ != DHO_DHCP_OPTION_OVERLOAD() }
+                    @{ $self->{options_order} };
         }
 
     }
@@ -731,6 +740,24 @@ sub toString {
 
 #=======================================================================
 # internal utility functions
+
+sub _parse_option_buffer {
+    my ($self, $buf, $start) = @_;
+    $start //= 0;
+    my $pos   = $start;
+    my $total = length($buf);
+    my $type;
+    while ($pos < $total) {
+        $type = ord(substr($buf, $pos++, 1));
+        next if $type == DHO_PAD();
+        last if $type == DHO_END();
+        my $len = ord(substr($buf, $pos++, 1));
+        $len = $total - $pos if $pos + $len > $total;
+        $self->addOptionRaw($type, substr($buf, $pos, $len));
+        $pos += $len;
+    }
+    return ($type, $pos);
+}
 
 sub _printable {
     my $str = shift;
