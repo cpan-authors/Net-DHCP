@@ -150,18 +150,7 @@ sub multi_value_array_ref {
 
 sub addOptionRaw {
     my ( $self, $key, $value_bin ) = @_;
-    if ( $key == DHO_CLASSLESS_STATIC_ROUTE() && exists $self->{options}->{$key} ) {
-        my $existing = $self->{options}->{$key};
-        if (is_plain_arrayref($existing)) {
-            push @$existing, $value_bin;
-        }
-        else {
-            $self->{options}->{$key} = [$existing, $value_bin];
-        }
-    }
-    else {
-        $self->{options}->{$key} = $value_bin;
-    }
+    $self->{options}->{$key} = $value_bin;
     if ( none { $_ == $key } @{ $self->{options_order} } ) {
         push @{ $self->{options_order} }, $key;
     }
@@ -242,7 +231,7 @@ sub addOptionValue {
     my $encoded = $options{$format} ? $options{$format}->(@values) : $value;
 
     # csr can return multiple chunks; store as arrayref so serialize emits
-    # one option-121 instance per chunk instead of silently dropping chunks
+    # one option instance per chunk instead of silently dropping chunks
     if (is_plain_arrayref($encoded) && @$encoded > 1) {
         $self->{options}->{$code} = $encoded;
         if ( none { $_ == $code } @{ $self->{options_order} } ) {
@@ -966,8 +955,16 @@ sub unpacksuboptions {
 
 
 sub packclientid {
-    my $clientid = shift;
+    my $clientid  = shift;
+    my $force_type = shift;
     return unless _nonempty($clientid);
+
+    if (defined $force_type) {
+        my $type = $force_type eq 'ether' ? CLIENTID_TYPE_ETHER
+                 : $force_type eq 'fqdn'  ? CLIENTID_TYPE_FQDN
+                 : croak(q{packclientid: force_type must be 'ether' or 'fqdn'});
+        return pack('C', $type) . $clientid;
+    }
 
     if ($clientid =~ m/^[0-9a-fA-F]{2}(?:[0-9a-fA-F]{2})*$/) {
         return pack('C', CLIENTID_TYPE_ETHER) . pack('H*', $clientid);
@@ -1032,8 +1029,16 @@ sub unpackclientid {
 }
 
 sub packsipserv {
-    my $sipserv = shift;
+    my $sipserv    = shift;
+    my $force_type = shift;
     return unless _nonempty($sipserv);
+
+    if (defined $force_type) {
+        my $type = $force_type eq 'ip'     ? SIPSERV_TYPE_IPV4
+                 : $force_type eq 'domain' ? SIPSERV_TYPE_FQDN
+                 : croak(q{packsipserv: force_type must be 'ip' or 'domain'});
+        return pack('C', $type) . ($type == SIPSERV_TYPE_IPV4 ? packinets($sipserv) : $sipserv);
+    }
 
     if ($sipserv =~ m/^[0-9]{1,3}(?:\.[0-9]{1,3}){3}(?:\s+[0-9]{1,3}(?:\.[0-9]{1,3}){3})*$/) {
         return pack('C', SIPSERV_TYPE_IPV4) . packinets($sipserv);
@@ -1385,12 +1390,28 @@ This is an empty stub for now
 
 Remove option from option list.
 
-=item I<packclientid( VALUE )>
+=item I<packclientid( VALUE [, FORCE_TYPE ] )>
 
-returns the packed Client-identifier.
+Returns the packed Client-identifier.
 
 Auto-detects format: even-length hex strings (e.g. C<"0010A706DFFF">)
-are packed as type 1 (MAC), plain text as type 0 (FQDN).
+are packed as type 1 (ether), plain text as type 0 (fqdn).
+
+To override auto-detection, pass a second argument:
+
+  packclientid('deadbeef', 'fqdn')   # force type 0, treat hex as text
+  packclientid('myhost',   'ether')  # force type 1, treat text as raw bytes
+
+Warning: if a value is both valid hex and meaningful text (e.g. a
+hostname that happens to be even-length hex), the heuristic picks type 1.
+Use C<addOptionRaw> or the C<$force_type> parameter to be explicit.
+
+For flexible MAC address input from many formats, use L<NetAddr::MAC>:
+
+  use NetAddr::MAC;
+  my $mac = NetAddr::MAC->new('00:11:22:aa:bb:cc');
+  $p->addOptionRaw(DHO_DHCP_CLIENT_IDENTIFIER(),
+      pack('C H*', 1, $mac->as_basic));
 
 See L<https://tools.ietf.org/html/rfc2132#section-9.14>
 
@@ -1409,12 +1430,17 @@ See L<https://tools.ietf.org/html/rfc2132#section-9.14>
 
 See also L<https://tools.ietf.org/html/rfc4361>
 
-=item I<packsipserv( VALUE )>
+=item I<packsipserv( VALUE [, FORCE_TYPE ] )>
 
-returns the packed sip server field.
+Returns the packed SIP server field.
 
 Auto-detects format: IP addresses are packed as type 1,
 domain names as type 0.
+
+To override auto-detection, pass a second argument:
+
+  packsipserv('192.0.2.1',   'domain')  # force type 0, treat IP as text
+  packsipserv('sip.example', 'ip')     # force type 1, treat domain as IP
 
 See L<https://tools.ietf.org/html/rfc3361>
 
@@ -1424,20 +1450,20 @@ returns the unpacked sip server.
 
 Decodes:
  type 0 as a domain name string
- type 1 as space-separated IPv4 addresses (e.g. C<"10.0.0.1 192.168.1.1">)
+ type 1 as space-separated IPv4 addresses (e.g. C<"192.0.2.1 203.0.113.1">)
  everything else is passed through
 
 =item I<packcsr( ARRAYREF )>
 
 returns the packed Classless Static Route option built from a list of
 CIDR prefix/gateway pairs. Each pair is C<[prefix, gateway]> where
-C<prefix> is a CIDR string like C<"10.0.0.0/8"> and C<gateway> is an
-IPv4 string like C<"10.0.0.1">.
+C<prefix> is a CIDR string like C<"192.0.2.0/24"> and C<gateway> is an
+IPv4 string like C<"192.0.2.1">.
 
 =item I<unpackcsr>
 
 Returns the unpacked Classless Static Route as a list of alternating
-prefix/mask and gateway strings (e.g. C<"10.0.0.0/8", "10.0.0.1">).
+prefix/mask and gateway strings (e.g. C<"192.0.2.0/24", "192.0.2.1">).
 
 =item I<packuserclass( VALUE [, VALUE...] )>
 
@@ -1708,8 +1734,8 @@ Controls whether C<getOptionValue> returns multi-value options as
 arrayrefs instead of comma-joined strings. Affects all plural DHCP
 option formats (inets, bytes, shorts, userclass, csr, etc.).
 
-When enabled, C<getOptionValue(6)> returns C<["10.0.0.1", "10.0.0.2"]>
-instead of C<"10.0.0.1, 10.0.0.2">.
+When enabled, C<getOptionValue(6)> returns C<["192.0.2.1", "192.0.2.2"]>
+instead of C<"192.0.2.1, 192.0.2.2">.
 
 May also be set globally via C<$Net::DHCP::multi_value_array_ref> or
 passed as a constructor argument. The instance value is captured at

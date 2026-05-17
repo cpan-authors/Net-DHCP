@@ -20,11 +20,11 @@ sub pack_subopt {
 subtest 'link selection suboption (5) with inet format' => sub {
     plan tests => 2;
     my $p = Net::DHCP::Packet->new();
-    $p->addSubOptionValue(DHO_DHCP_AGENT_OPTIONS(), RAI_LINK_SELECTION(), '10.0.0.1');
+    $p->addSubOptionValue(DHO_DHCP_AGENT_OPTIONS(), RAI_LINK_SELECTION(), '192.0.2.1');
     is($p->getSubOptionValue(DHO_DHCP_AGENT_OPTIONS(), RAI_LINK_SELECTION()),
-        '10.0.0.1', 'add/get link selection round-trip');
+        '192.0.2.1', 'add/get link selection round-trip');
     is($p->getSubOptionRaw(DHO_DHCP_AGENT_OPTIONS(), RAI_LINK_SELECTION()),
-        "\x0A\x00\x00\x01", 'raw link selection correct');
+        "\xC0\x00\x02\x01", 'raw link selection correct');
 };
 
 subtest 'subscriber id suboption (6) with string format' => sub {
@@ -50,11 +50,11 @@ subtest 'relay agent flags suboption (10) with byte format' => sub {
 subtest 'server id override suboption (11) with inet format' => sub {
     plan tests => 2;
     my $p = Net::DHCP::Packet->new();
-    $p->addSubOptionValue(DHO_DHCP_AGENT_OPTIONS(), RAI_SERVER_ID_OVERRIDE(), '192.168.1.1');
+    $p->addSubOptionValue(DHO_DHCP_AGENT_OPTIONS(), RAI_SERVER_ID_OVERRIDE(), '203.0.113.1');
     is($p->getSubOptionValue(DHO_DHCP_AGENT_OPTIONS(), RAI_SERVER_ID_OVERRIDE()),
-        '192.168.1.1', 'add/get server id override round-trip');
+        '203.0.113.1', 'add/get server id override round-trip');
     is($p->getSubOptionRaw(DHO_DHCP_AGENT_OPTIONS(), RAI_SERVER_ID_OVERRIDE()),
-        "\xC0\xA8\x01\x01", 'raw server id override correct');
+        "\xCB\x00\x71\x01", 'raw server id override correct');
 };
 
 subtest 'agent id suboption (3) with hexa format' => sub {
@@ -201,11 +201,11 @@ subtest 'nwip suboption (63) with byte/inet format' => sub {
         "\x01",         'raw nwip flag correct');
 
     # IP suboption (inet)
-    $p->addSubOptionValue(DHO_NWIP_SUBOPTIONS(), NWIP_PREFERRED_DSS(), '10.0.0.1');
+    $p->addSubOptionValue(DHO_NWIP_SUBOPTIONS(), NWIP_PREFERRED_DSS(), '192.0.2.1');
     is($p->getSubOptionValue(DHO_NWIP_SUBOPTIONS(), NWIP_PREFERRED_DSS()),
-        '10.0.0.1', 'nwip inet suboption round-trip');
+        '192.0.2.1', 'nwip inet suboption round-trip');
     is($p->getSubOptionRaw(DHO_NWIP_SUBOPTIONS(), NWIP_PREFERRED_DSS()),
-        "\x0A\x00\x00\x01", 'raw nwip inet correct');
+        "\xC0\x00\x02\x01", 'raw nwip inet correct');
 
     # No croak on getOptionValue
     eval { $p->getOptionValue(63) };
@@ -223,11 +223,11 @@ subtest 'ccc suboption (122) with inet/string/byte/int/hexa format' => sub {
     my $p = Net::DHCP::Packet->new();
 
     # inet suboption
-    $p->addSubOptionValue(DHO_CCC(), CCC_PRIMARY_DHCP_SERVER(), '10.0.0.2');
+    $p->addSubOptionValue(DHO_CCC(), CCC_PRIMARY_DHCP_SERVER(), '192.0.2.2');
     is($p->getSubOptionValue(DHO_CCC(), CCC_PRIMARY_DHCP_SERVER()),
-        '10.0.0.2', 'ccc inet suboption round-trip');
+        '192.0.2.2', 'ccc inet suboption round-trip');
     is($p->getSubOptionRaw(DHO_CCC(), CCC_PRIMARY_DHCP_SERVER()),
-        "\x0A\x00\x00\x02", 'raw ccc inet correct');
+        "\xC0\x00\x02\x02", 'raw ccc inet correct');
 
     # string suboption
     $p->addSubOptionValue(DHO_CCC(), CCC_KERBEROS_REALM(), 'EXAMPLE.COM');
