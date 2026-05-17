@@ -1,0 +1,62 @@
+Code Review Plan - Net-DHCP v0.8
+=================================
+
+!!! THIS FILE MUST REMAIN UNTRACKED AND UNCOMMITTED !!!
+!!! DO NOT git add OR git commit THIS FILE.        !!!
+
+## Considered but rejected
+
+- OrderOptions.pm reorder_options tracks the last index of 60/43, which can misorder
+  duplicates (e.g. [60, 43, 60] → [60, 60, 43] is correct; [43, 60, 43] is misordered
+  but never happens in real DHCP — duplicate option codes are extremely unusual).
+  Not worth fixing.
+
+- Option code duplicates at 128, 129, 130, 150 (IANA conflicts) — intentional,
+  not a bug.
+
+## How to amend a commit in the stack with git branchless
+
+The branchless tool's `git amend` only works on the current HEAD.
+To amend a non-HEAD commit in the stack, use this workflow:
+
+1. Stash any working-tree changes:
+       git stash
+
+2. Switch to the target commit (naturally results in detached HEAD):
+       git switch <target-commit-hash>
+
+3. Pop your stash:
+       git stash pop
+
+4. Stage changes and amend:
+       git add <files...>
+       git amend
+
+   Branchless will automatically restack all descendant commits
+   in-memory (or fall back to on-disk if there are merge conflicts).
+   If conflicts occur, run:
+       git restack --merge
+
+5. Switch back to the branch tip:
+       git switch <branch-name>
+
+6. Verify with dzil test.
+
+Key points:
+- Use `git switch -d` (not `git checkout`) for detached HEAD
+- Files not touched by descendant commits restack cleanly in-memory
+- If descendant commits touch the same files, use `git restack --merge`
+  to resolve conflicts (or `git restack` for automatic in-memory rebase)
+- After restack, the branch tip moves to include the rebased stack
+
+## Remaining work / TODOs
+
+[ ] DHO_VENDOR_ENCAPSULATED_OPTIONS (43) — EFFORT: HIGH (~30-45 min)
+
+## Done
+
+- chaddr padding — current behaviour is correct per spec, no clear problem to solve
+- Cablelabs options — CCC (122) suboption formats and PacketCable deprecated (177) hexa format are implemented
+- docs/bootp-dhcp-parameters.txt — reverted minified single-line to original multi-line XML, added `skip = ^docs/` to EOLFiles finder in dist.ini
+
+## Deferred indefinitely

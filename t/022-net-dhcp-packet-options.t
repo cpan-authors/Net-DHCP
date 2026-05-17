@@ -187,7 +187,7 @@ eval { $p->getSubOptionValue(DHO_DHCP_AGENT_OPTIONS(), 999) };
 like($@, qr/suboption.*not defined/, 'getSubOptionValue croaks for undefined suboption');
 
 eval { $p->getSubOptionValue(DHO_VENDOR_ENCAPSULATED_OPTIONS(), 1) };
-like($@, qr/no suboptions defined/, 'getSubOptionValue croaks for code with no suboption definitions');
+like($@, qr/suboption.*not defined/, 'getSubOptionValue croaks for undefined option43 suboption');
 };
 
 # getSubOptionValue and removeSubOption
@@ -232,6 +232,6 @@ like($@, qr/no suboptions defined/, 'getSubOptionValue croaks for code with no s
     like($@, qr/suboption.*not defined/, 'getSubOptionValue croaks for undefined suboption');
 
     eval { $p->getSubOptionValue(DHO_VENDOR_ENCAPSULATED_OPTIONS(), 1) };
-    like($@, qr/no suboptions defined/, 'getSubOptionValue croaks for code with no suboption definitions');
+    like($@, qr/suboption.*not defined/, 'getSubOptionValue croaks for undefined option43 suboption');
 }
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 19;
+use Test::More tests => 21;
 
 BEGIN { use_ok( 'Net::DHCP::Packet' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants', ':ra_codes' ); }
@@ -10,6 +10,7 @@ BEGIN { use_ok( 'Net::DHCP::Constants', ':dho_codes' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants', ':geoconf_codes' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants', ':nwip_codes' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants', ':ccc_codes' ); }
+BEGIN { use_ok( 'Net::DHCP::Constants', ':vendor43_codes' ); }
 
 sub pack_subopt {
     my ($type, $val) = @_;
@@ -244,4 +245,39 @@ subtest 'ccc suboption (122) with inet/string/byte/int/hexa format' => sub {
         3600, 'ccc int suboption round-trip');
     is($p->getSubOptionRaw(DHO_CCC(), CCC_PROVISIONING_TIMER()),
         "\x00\x00\x0E\x10", 'raw ccc provisioning timer correct');
+};
+
+subtest 'vendor43 suboption (43) with byte/string/hexa format' => sub {
+    plan tests => 8;
+    my $p = Net::DHCP::Packet->new();
+
+    # byte suboption (DEVICE_TYPE = 2)
+    $p->addSubOptionValue(DHO_VENDOR_ENCAPSULATED_OPTIONS(), VENDOR43_DEVICE_TYPE(), '1');
+    is($p->getSubOptionValue(DHO_VENDOR_ENCAPSULATED_OPTIONS(), VENDOR43_DEVICE_TYPE()),
+        1, 'vendor43 byte suboption round-trip');
+    is($p->getSubOptionRaw(DHO_VENDOR_ENCAPSULATED_OPTIONS(), VENDOR43_DEVICE_TYPE()),
+        "\x01", 'raw vendor43 byte correct');
+
+    # string suboption (SERIAL_NUMBER = 4)
+    $p->addSubOptionValue(DHO_VENDOR_ENCAPSULATED_OPTIONS(), VENDOR43_SERIAL_NUMBER(), 'SN12345');
+    is($p->getSubOptionValue(DHO_VENDOR_ENCAPSULATED_OPTIONS(), VENDOR43_SERIAL_NUMBER()),
+        'SN12345', 'vendor43 string suboption round-trip');
+    is($p->getSubOptionRaw(DHO_VENDOR_ENCAPSULATED_OPTIONS(), VENDOR43_SERIAL_NUMBER()),
+        'SN12345', 'raw vendor43 string correct');
+
+    # hexa suboption (OUI = 8)
+    $p->addSubOptionValue(DHO_VENDOR_ENCAPSULATED_OPTIONS(), VENDOR43_OUI(), '001122');
+    is($p->getSubOptionValue(DHO_VENDOR_ENCAPSULATED_OPTIONS(), VENDOR43_OUI()),
+        '001122', 'vendor43 hexa suboption round-trip');
+    is($p->getSubOptionRaw(DHO_VENDOR_ENCAPSULATED_OPTIONS(), VENDOR43_OUI()),
+        "\x00\x11\x22", 'raw vendor43 hexa correct');
+
+    # MAC as hexa suboption (MTA_MAC_ADDRESS = 31)
+    $p->addSubOptionValue(DHO_VENDOR_ENCAPSULATED_OPTIONS(), VENDOR43_MTA_MAC_ADDRESS(), 'aabbccddee');
+    is($p->getSubOptionValue(DHO_VENDOR_ENCAPSULATED_OPTIONS(), VENDOR43_MTA_MAC_ADDRESS()),
+        'aabbccddee', 'vendor43 mac hexa suboption round-trip');
+
+    # getOptionValue does not croak (even with hashref suboption data)
+    eval { $p->getOptionValue(DHO_VENDOR_ENCAPSULATED_OPTIONS()) };
+    is($@, '', 'getOptionValue(43) does not croak');
 };
