@@ -25,6 +25,8 @@ our ( %GEOCONF_CODES,    %REV_GEOCONF_CODES );
 our ( %GEOCONF_FORMATS,  %REV_GEOCONF_FORMATS );
 our ( %RELAYAGENT_CODES, %REV_RELAYAGENT_CODES );
 our ( %RELAYAGENT_FORMATS, %REV_RELAYAGENT_FORMATS );
+our ( %VENDOR43_CODES,   %REV_VENDOR43_CODES );
+our ( %VENDOR43_FORMATS, %REV_VENDOR43_FORMATS );
 our ( %SUBOPTION_CODES,  %REV_SUBOPTION_CODES );
 
 our %EXPORT_TAGS = (
@@ -36,6 +38,7 @@ our %EXPORT_TAGS = (
     ccc_codes     => [ keys %CCC_CODES ],
     geoconf_codes => [ keys %GEOCONF_CODES ],
     ra_codes      => [ keys %RELAYAGENT_CODES ],
+    vendor43_codes => [ keys %VENDOR43_CODES ],
     dhcp_hashes   => [
         qw(
           %DHO_CODES %REV_DHO_CODES
@@ -49,6 +52,8 @@ our %EXPORT_TAGS = (
           %GEOCONF_CODES %REV_GEOCONF_CODES
           %GEOCONF_FORMATS %REV_GEOCONF_FORMATS
           %RELAYAGENT_CODES %REV_RELAYAGENT_CODES
+          %VENDOR43_CODES %REV_VENDOR43_CODES
+          %VENDOR43_FORMATS %REV_VENDOR43_FORMATS
           %SUBOPTION_CODES %REV_SUBOPTION_CODES
           )
     ],
@@ -75,6 +80,8 @@ our @EXPORT_OK = qw(
   %GEOCONF_CODES %REV_GEOCONF_CODES
   %GEOCONF_FORMATS %REV_GEOCONF_FORMATS
   %RELAYAGENT_CODES %REV_RELAYAGENT_CODES
+  %VENDOR43_CODES %REV_VENDOR43_CODES
+  %VENDOR43_FORMATS %REV_VENDOR43_FORMATS
   %SUBOPTION_CODES  %REV_SUBOPTION_CODES
   %REV_SUBOPTION_FORMATS
 
@@ -86,6 +93,7 @@ Exporter::export_tags('htype_codes');
 Exporter::export_tags('nwip_codes');
 Exporter::export_tags('ccc_codes');
 Exporter::export_tags('geoconf_codes');
+Exporter::export_tags('vendor43_codes');
 Exporter::export_ok_tags('dhcp_other');
 Exporter::export_ok_tags('ra_codes');
 
@@ -332,6 +340,33 @@ BEGIN {
         'CCC_KDC_SERVER'                 => 10,
     );
 
+    # CableLabs DOCSIS sub-option codes for option 43 (vendor encapsulated)
+    %VENDOR43_CODES = (
+        'VENDOR43_DEVICE_TYPE'           => 2,
+        'VENDOR43_ECM'                   => 3,
+        'VENDOR43_SERIAL_NUMBER'         => 4,
+        'VENDOR43_HW_VERSION'            => 5,
+        'VENDOR43_SW_VERSION'            => 6,
+        'VENDOR43_BOOT_ROM_VERSION'      => 7,
+        'VENDOR43_OUI'                   => 8,
+        'VENDOR43_MODEL_NUMBER'          => 9,
+        'VENDOR43_VENDOR_NAME'           => 10,
+        'VENDOR43_PS_WAN_MAN_DATA'       => 11,
+        'VENDOR43_CM_PS_SYSTEM_DESC'     => 12,
+        'VENDOR43_CM_PS_FIRMWARE_REV'    => 13,
+        'VENDOR43_FIREWALL_POLICY_FILE'  => 14,
+        'VENDOR43_ESAFES'                => 15,
+        'VENDOR43_DEVICE_TPID'           => 16,
+        'VENDOR43_DEVICE_SMID'           => 17,
+        'VENDOR43_VIDEOSECURITYELEMENT'  => 18,
+        'VENDOR43_MTA_MAC_ADDRESS'       => 31,
+        'VENDOR43_MTA_CORRELATION_ID'    => 32,
+        'VENDOR43_CARD_VENDOR_NAME'      => 51,
+        'VENDOR43_CARD_CAPABILITY'       => 52,
+        'VENDOR43_CARD_VENDOR_DEVICE_ID' => 53,
+        'VENDOR43_CARD_ID'               => 54,
+    );
+
     # Type 123 sub option codes (there are more, but im not sure how to deal with them)
     %GEOCONF_CODES = (
         'GEO_METERS' => 1,
@@ -556,11 +591,42 @@ our %DHO_FORMATS = (
 
 %REV_CCC_FORMATS = reverse %CCC_FORMATS;
 
+use constant \%VENDOR43_CODES;
+%REV_VENDOR43_CODES = reverse %VENDOR43_CODES;
+
+%VENDOR43_FORMATS = (
+    VENDOR43_DEVICE_TYPE()           => 'byte',
+    VENDOR43_ECM()                   => 'byte',
+    VENDOR43_SERIAL_NUMBER()         => 'string',
+    VENDOR43_HW_VERSION()            => 'string',
+    VENDOR43_SW_VERSION()            => 'string',
+    VENDOR43_BOOT_ROM_VERSION()      => 'string',
+    VENDOR43_OUI()                   => 'hexa',
+    VENDOR43_MODEL_NUMBER()          => 'string',
+    VENDOR43_VENDOR_NAME()           => 'string',
+    VENDOR43_PS_WAN_MAN_DATA()       => 'hexa',
+    VENDOR43_CM_PS_SYSTEM_DESC()     => 'string',
+    VENDOR43_CM_PS_FIRMWARE_REV()    => 'string',
+    VENDOR43_FIREWALL_POLICY_FILE()  => 'string',
+    VENDOR43_ESAFES()                => 'hexa',
+    VENDOR43_DEVICE_TPID()           => 'hexa',
+    VENDOR43_DEVICE_SMID()           => 'hexa',
+    VENDOR43_VIDEOSECURITYELEMENT()  => 'hexa',
+    VENDOR43_MTA_MAC_ADDRESS()       => 'hexa',
+    VENDOR43_MTA_CORRELATION_ID()    => 'string',
+    VENDOR43_CARD_VENDOR_NAME()      => 'string',
+    VENDOR43_CARD_CAPABILITY()       => 'hexa',
+    VENDOR43_CARD_VENDOR_DEVICE_ID() => 'hexa',
+    VENDOR43_CARD_ID()               => 'string',
+);
+%REV_VENDOR43_FORMATS = reverse %VENDOR43_FORMATS;
+
 our %SUBOPTION_FORMATS = (
     $DHO_CODES{'DHO_DHCP_AGENT_OPTIONS'}    => \%RELAYAGENT_FORMATS,
     $DHO_CODES{'DHO_GEOCONF'}               => \%GEOCONF_FORMATS,
     $DHO_CODES{'DHO_NWIP_SUBOPTIONS'}        => \%NWIP_FORMATS,
     $DHO_CODES{'DHO_CCC'}                    => \%CCC_FORMATS,
+    $DHO_CODES{'DHO_VENDOR_ENCAPSULATED_OPTIONS'} => \%VENDOR43_FORMATS,
 );
 
 our %REV_SUBOPTION_FORMATS = (
@@ -568,6 +634,7 @@ our %REV_SUBOPTION_FORMATS = (
     $DHO_CODES{'DHO_GEOCONF'}               => \%REV_GEOCONF_FORMATS,
     $DHO_CODES{'DHO_NWIP_SUBOPTIONS'}        => \%REV_NWIP_FORMATS,
     $DHO_CODES{'DHO_CCC'}                    => \%REV_CCC_FORMATS,
+    $DHO_CODES{'DHO_VENDOR_ENCAPSULATED_OPTIONS'} => \%REV_VENDOR43_FORMATS,
 );
 
 # Links option codes with their suboption values
@@ -576,6 +643,7 @@ our %REV_SUBOPTION_FORMATS = (
     $DHO_CODES{'DHO_DHCP_AGENT_OPTIONS'} => \%RELAYAGENT_CODES, # option 82
     $DHO_CODES{'DHO_CCC'}                => \%CCC_CODES,  # option 122
     $DHO_CODES{'DHO_GEOCONF'}            => \%GEOCONF_CODES, # option 123
+    $DHO_CODES{'DHO_VENDOR_ENCAPSULATED_OPTIONS'} => \%VENDOR43_CODES, # option 43
 );
 
 # Links option codes with their reverse suboption values
@@ -584,6 +652,7 @@ our %REV_SUBOPTION_FORMATS = (
     $DHO_CODES{'DHO_DHCP_AGENT_OPTIONS'} => \%REV_RELAYAGENT_CODES, # option 82
     $DHO_CODES{'DHO_CCC'}                => \%REV_CCC_CODES,  # option 122
     $DHO_CODES{'DHO_GEOCONF'}            => \%REV_GEOCONF_CODES, # option 123
+    $DHO_CODES{'DHO_VENDOR_ENCAPSULATED_OPTIONS'} => \%REV_VENDOR43_CODES, # option 43
 );
 
 1;
@@ -651,6 +720,31 @@ Nb. Previously Cisco used 13 for DHCPLEASEQUERY. If you need to decode
 or encode packets to communicate with such a system, you might simply
 use the integer rather than the constant - or use the updated constant
 and comment in your code appropriately.
+
+=item * nwip_codes
+
+Import all NWIP suboption codes for option 63 (rfc 2242).
+Format types are shown in parentheses.
+
+    (001) NWIP_DOES_NOT_EXIST        (byte)
+    (002) NWIP_EXIST_IN_OPTIONS_AREA (byte)
+    (003) NWIP_EXIST_IN_SNAME_FILE   (byte)
+    (004) NWIP_EXIST_BUT_TOO_BIG     (byte)
+    (005) NWIP_NSQ_BROADCAST         (byte)
+    (006) NWIP_PREFERRED_DSS         (inet)
+    (007) NWIP_NEAREST_NWIP_SERVER   (inet)
+    (008) NWIP_AUTORETRIES           (byte)
+    (009) NWIP_AUTORETRY_SECS        (byte)
+    (010) NWIP_1_1                   (byte)
+    (011) NWIP_PRIMARY_DSS           (inet)
+
+=item * geoconf_codes
+
+Import all GEOCONF suboption codes for option 123 (rfc 6225).
+Format types are shown in parentheses.
+
+    (001) GEO_METERS (int)
+    (002) GEO_FLOORS (byte)
 
 =item * dho_codes
 
@@ -799,61 +893,67 @@ Import all DHCP option codes.
 
 =item * ccc_codes
 
-Import all CableLabs Client Configuration
+Import all CableLabs Client Configuration (CCC) suboption codes
+for option 122. Format types are shown in parentheses.
 
-    (001) CCC_PRIMARY_DHCP_SERVER
-    (002) CCC_SECONDARY_DHCP_SERVER
-    (003) CCC_PROVISIONING_SERVER
-    (004) CCC_AS_REQ_AS_REP_BACKOFFRETRY
-    (005) CCC_AP_REQ_AS_REP_BACKOFFRETRY
-    (006) CCC_KERBEROS_REALM
-    (007) CCC_TICKET_SERVER_UTILIZATION
-    (008) CCC_PROVISIONING_TIMER
-    (009) CCC_SECURITY_TICKET_CONTROL
-    (010) CCC_KDC_SERVER
+    (001) CCC_PRIMARY_DHCP_SERVER        (inet)
+    (002) CCC_SECONDARY_DHCP_SERVER      (inet)
+    (003) CCC_PROVISIONING_SERVER        (inet)
+    (004) CCC_AS_REQ_AS_REP_BACKOFFRETRY (hexa)
+    (005) CCC_AP_REQ_AS_REP_BACKOFFRETRY (hexa)
+    (006) CCC_KERBEROS_REALM             (string)
+    (007) CCC_TICKET_SERVER_UTILIZATION  (byte)
+    (008) CCC_PROVISIONING_TIMER         (int)
+    (009) CCC_SECURITY_TICKET_CONTROL    (byte)
+    (010) CCC_KDC_SERVER                 (inet)
 
 =item * ra_codes
 
-Import all DHCP Agenet (aka Relay Agent) Codes
+Import all DHCP Agent (Relay Agent) suboption codes for option 82.
+Format types are shown in parentheses.
 
-    (001) RAI_CIRCUIT_ID
-    (002) RAI_REMOTE_ID
-    (004) RAI_DOCSIS_CLASS
-    (005) RAI_LINK_SELECTION
-    (006) RAI_SUBSCRIBER_ID
-    (007) RAI_RADIUS_ATTRIBUTES
-    (008) RAI_AUTHENTICATION
-    (009) RAI_VENDOR_INFO
-    (010) RAI_FLAGS
-    (011) RAI_SERVER_ID_OVERRIDE
-    (151) RAI_DHCPV4_VIRTUAL_SUBNET_SELECTION
-    (152) RAI_DHCPV4_VIRTUAL_SUBNET_SELECTION_CONTROL
+    (001) RAI_CIRCUIT_ID                              (circuit_id)
+    (002) RAI_REMOTE_ID                               (remote_id)
+    (003) RAI_AGENT_ID                                (hexa)
+    (004) RAI_DOCSIS_CLASS                            (hexa)
+    (005) RAI_LINK_SELECTION                          (inet)
+    (006) RAI_SUBSCRIBER_ID                           (string)
+    (007) RAI_RADIUS_ATTRIBUTES                       (hexa)
+    (008) RAI_AUTHENTICATION                          (hexa)
+    (009) RAI_VENDOR_INFO                             (hexa)
+    (010) RAI_FLAGS                                   (byte)
+    (011) RAI_SERVER_ID_OVERRIDE                      (inet)
+    (151) RAI_DHCPV4_VIRTUAL_SUBNET_SELECTION         (hexa)
+    (152) RAI_DHCPV4_VIRTUAL_SUBNET_SELECTION_CONTROL (hexa)
 
-=item * CABLELABS_OPTION43
+=item * vendor43_codes
 
-    (002) DEVICE_TYPE
-    3 ECM
-    4 SERIAL_NUMBER
-    5 HW_VERSION
-    6 SW_VERSION
-    7 BOOT_ROM_VERSION
-    8 OUI
-    9 MODEL_NUMBER
-    10 VENDOR_NAME
-    11 PS_WAN_MAN_DATA
-    12 CM_PS_SYSTEM_DESCRIPTION
-    13 CM_PS_FIRMWARE_REV
-    14 FIREWALL_POLICY_FILE_VERSION
-    15 ESAFES
-    16 DEVICE_TPID
-    17 DEVICE SMID
-    18 VIDEOSECURITYELEMENT
-    31 MTA_MAC_ADDRESS
-    32 MTA_CORRELATION_ID
-    51 CARD_VENDOR_NAME
-    52 CARD_CAPABILITY
-    53 CARD_VENDOR_DEVICE_ID
-    54 CARD_ID
+Import all CableLabs DOCSIS suboption codes for option 43 (vendor
+encapsulated options). Format types are shown in parentheses.
+
+    (002) VENDOR43_DEVICE_TYPE       (byte)
+    (003) VENDOR43_ECM               (byte)
+    (004) VENDOR43_SERIAL_NUMBER     (string)
+    (005) VENDOR43_HW_VERSION        (string)
+    (006) VENDOR43_SW_VERSION        (string)
+    (007) VENDOR43_BOOT_ROM_VERSION  (string)
+    (008) VENDOR43_OUI               (hexa)
+    (009) VENDOR43_MODEL_NUMBER      (string)
+    (010) VENDOR43_VENDOR_NAME       (string)
+    (011) VENDOR43_PS_WAN_MAN_DATA   (hexa)
+    (012) VENDOR43_CM_PS_SYSTEM_DESC (string)
+    (013) VENDOR43_CM_PS_FIRMWARE_REV(string)
+    (014) VENDOR43_FIREWALL_POLICY_FILE(string)
+    (015) VENDOR43_ESAFES            (hexa)
+    (016) VENDOR43_DEVICE_TPID       (hexa)
+    (017) VENDOR43_DEVICE_SMID       (hexa)
+    (018) VENDOR43_VIDEOSECURITYELEMENT(hexa)
+    (031) VENDOR43_MTA_MAC_ADDRESS   (hexa)
+    (032) VENDOR43_MTA_CORRELATION_ID(string)
+    (051) VENDOR43_CARD_VENDOR_NAME  (string)
+    (052) VENDOR43_CARD_CAPABILITY   (hexa)
+    (053) VENDOR43_CARD_VENDOR_DEVICE_ID(hexa)
+    (054) VENDOR43_CARD_ID           (string)
 
 
 
@@ -890,8 +990,6 @@ To supply pre-encoded RFC 3004 data, use C<addOptionRaw>.
 =back
 
 =head1 TO DO, LIMITATIONS
-
-Automatic parsing of DHO_VENDOR_ENCAPSULATED_OPTIONS (code 43) is unsupported.
 
 DHO_AUTHENTICATION (code 90, rfc 3118) has a structured format
 (protocol/algorithm/RDM/replay/auth-info) and is not parsed — returns raw bytes.
