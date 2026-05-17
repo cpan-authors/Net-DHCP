@@ -22,6 +22,7 @@ use Net::DHCP::Packet::Attributes qw(:all);
 use Net::DHCP::Packet::IPv4Utils qw(:all);
 use Net::DHCP::Packet::OrderOptions qw( reorder_options );
 use List::Util qw(any first none);
+use Ref::Util qw(is_ref is_plain_arrayref is_plain_hashref);
 
 my $UINT8_MASK = 255;
 my $OPTION_VALUE_SPLIT = qr/[\s\/,;]+/;
@@ -132,7 +133,7 @@ sub addOptionRaw {
     my ( $self, $key, $value_bin ) = @_;
     if ( $key == DHO_CLASSLESS_STATIC_ROUTE() && exists $self->{options}->{$key} ) {
         my $existing = $self->{options}->{$key};
-        if (ref $existing eq 'ARRAY') {
+        if (is_plain_arrayref($existing)) {
             push @$existing, $value_bin;
         }
         else {
@@ -168,7 +169,7 @@ sub addOptionValue {
 
     # decompose input value into an array
     my @values;
-    if (ref $value eq 'ARRAY') {
+    if (is_plain_arrayref($value)) {
         @values = @$value;
     }
     elsif ( defined $value && $value ne q|| ) {
@@ -179,6 +180,7 @@ sub addOptionValue {
     if ( $format eq 'string' || $format eq 'csr' ) {
         @values = ($value);      # don't change format
     }
+
     elsif ( $format =~ m/s$/ ) { # ends with an 's', meaning any number of parameters
         ;
     }
@@ -222,7 +224,7 @@ sub addOptionValue {
 
     # csr can return multiple chunks; store as arrayref so serialize emits
     # one option-121 instance per chunk instead of silently dropping chunks
-    if (ref $encoded eq 'ARRAY' && @$encoded > 1) {
+    if (is_plain_arrayref($encoded) && @$encoded > 1) {
         $self->{options}->{$code} = $encoded;
         if ( none { $_ == $code } @{ $self->{options_order} } ) {
             push @{ $self->{options_order} }, $code;
@@ -353,7 +355,7 @@ sub getOptionValue {
     return unless defined $value_bin;
 
     # flatten accumulated chunks into a single value for decoding
-    $value_bin = join('', @$value_bin) if ref $value_bin eq 'ARRAY';
+    $value_bin = join('', @$value_bin) if is_plain_arrayref($value_bin);
 
     # my @values;
 
@@ -384,7 +386,7 @@ sub getOptionValue {
     # decode the options if we know the format
     if (defined $format && $options{$format}) {
         $value_bin = join(q|, |,
-        map { ref $_ ? sprintf '%s => %s', $subcodes->{$_->[0]} || $_->[0],
+        map { is_ref($_) ? sprintf '%s => %s', $subcodes->{$_->[0]} || $_->[0],
             do { my $v = $_->[1]; if ($v =~ m/[ ,"]/) { $v =~ s/\\/\\\\/g; $v =~ s/"/\\"/g } $v = _printable($v); $v = qq("$v") if $v =~ m/[ ,"]/; $v } : $_ }
         ( $options{$format}->($value_bin) ))
     }
@@ -515,7 +517,7 @@ sub removeOption {
 sub removeSubOption {
     my ($self, $code, $subcode) = @_;
     if (exists $self->{options}->{$code}
-        && ref $self->{options}->{$code} eq 'HASH'
+        && is_plain_hashref($self->{options}->{$code})
         && exists $self->{options}->{$code}->{$subcode}) {
         delete $self->{options}->{$code}->{$subcode};
         if (exists $self->{sub_options_order}->{$code}) {
@@ -548,13 +550,13 @@ sub serialize {
     if ( $self->{isDhcp} ) {    # add MAGIC_COOKIE and options
         $bytes .= MAGIC_COOKIE();
         for my $key ( reorder_options( @{ $self->{options_order} } ) ) {
-            if ( ref($self->{options}->{$key}) eq 'ARRAY' ) {
+            if ( is_plain_arrayref($self->{options}->{$key}) ) {
                 for my $value ( @{$self->{options}->{$key}} ) {
                     $bytes .= pack( 'C',    $key );
                     $bytes .= pack( 'C/a*', $value );
                 }
             }
-            elsif ( ref($self->{options}->{$key}) eq 'HASH' ) {
+            elsif ( is_plain_hashref($self->{options}->{$key}) ) {
                 my $subbytes = q{};
                 for my $subkey ( @{ $self->{sub_options_order}->{$key} } ) {
                     $subbytes .= pack( 'C',    $subkey );
@@ -1028,7 +1030,7 @@ sub packcsr {
     my $routes = shift;
     return [''] unless defined $routes;
 
-    if (!ref $routes) {
+    if (!is_plain_arrayref($routes)) {
         my @tokens = split ' ', $routes;
         $routes = [];
         while (@tokens >= 2) {
