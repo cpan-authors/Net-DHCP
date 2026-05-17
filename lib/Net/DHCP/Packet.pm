@@ -5,7 +5,7 @@
 # ABSTRACT: Object methods to create a DHCP packet.
 use strict;
 use warnings FATAL => 'uninitialized';
-use 5.8.0;
+use 5.10.0;
 
 package Net::DHCP::Packet;
 
