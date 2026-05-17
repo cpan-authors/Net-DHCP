@@ -865,13 +865,12 @@ sub packsuboptions {
 
     my $buf = '';
     for my $opt (@relay_opt) {
-        my $value = pack( 'C/a*', $opt->[1]);
         $buf .= pack( 'C', $opt->[0])
-             . pack( 'C', length($value))
-             . $value;
+             . pack( 'C', length($opt->[1]))
+             . $opt->[1];
     }
 
-    return pack( 'C', length($buf) ) . $buf
+    return $buf
 }
 
 sub unpacksuboptions {
