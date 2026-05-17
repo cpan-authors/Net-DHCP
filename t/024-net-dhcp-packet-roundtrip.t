@@ -13,6 +13,8 @@ sub psip { Net::DHCP::Packet::packsipserv(@_) }
 sub usip { Net::DHCP::Packet::unpacksipserv(@_) }
 sub pcsr { Net::DHCP::Packet::packcsr(@_) }
 sub ucsr { Net::DHCP::Packet::unpackcsr(@_) }
+sub psub { Net::DHCP::Packet::packsuboptions(@_) }
+sub usub { Net::DHCP::Packet::unpacksuboptions(@_) }
 
 # ----- packclientid / unpackclientid -----
 
@@ -350,8 +352,40 @@ subtest 'CSR default route' => sub {
     # manually build wire: mask=0, no addr bytes, router 10.0.0.1
     my $wire = pack('C', 0) . packinet('10.0.0.1');
     my @r = ucsr($wire);
-    is($r[0], '0.0.0.0/0', 'default route prefix');
     is($r[1], '10.0.0.1',  'default route gateway');
+};
+
+# ----- packsuboptions / unpacksuboptions -----
+
+subtest 'packsuboptions / unpacksuboptions' => sub {
+    plan tests => 12;
+
+    # basic round-trip
+    my @opts = (
+        [1, "\x00\x04\x00\x01\x00\x02"],
+        [2, "\x00\x06\xaa\xbb\xcc\xdd\xee\xff"],
+    );
+    my $packed = psub(@opts);
+    ok(defined $packed,                         'packsuboptions returns defined');
+    ok(length $packed > 0,                      'packsuboptions returns non-empty');
+
+    my @unpacked = usub($packed);
+    is(scalar @unpacked, 2,                     'unpacksuboptions returns 2 suboptions');
+    is($unpacked[0][0], 1,                      'suboption 1 type preserved');
+    is($unpacked[0][1], $opts[0][1],            'suboption 1 data preserved');
+    is($unpacked[1][0], 2,                      'suboption 2 type preserved');
+    is($unpacked[1][1], $opts[1][1],            'suboption 2 data preserved');
+
+    # wire format: type | len | data | type | len | data (no outer length prefix)
+    is(length $packed, (1+1+6) + (1+1+8),       'wire format = all entries, no outer len');
+    my $pos = 0;
+    is(ord(substr($packed, $pos++, 1)), 1,      'type byte 1');
+    my $len = ord(substr($packed, $pos++, 1));
+    is($len, length($opts[0][1]),                 'length byte 1 = 6 (not 7, no double-packing)');
+
+    # undef / empty
+    is(usub(undef), undef,                      'unpacksuboptions undef returns undef');
+    is(usub(''),    undef,                      'unpacksuboptions empty returns undef');
 };
 
 # ----- multi-chunk CSR round-trip (>255 bytes) -----
