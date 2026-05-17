@@ -354,6 +354,7 @@ subtest 'CSR default route' => sub {
     # manually build wire: mask=0, no addr bytes, router 10.0.0.1
     my $wire = pack('C', 0) . packinet('10.0.0.1');
     my @r = ucsr($wire);
+    is($r[0], '0.0.0.0/0', 'default route prefix');
     is($r[1], '10.0.0.1',  'default route gateway');
 };
 
