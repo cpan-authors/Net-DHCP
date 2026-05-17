@@ -7,6 +7,7 @@ use 5.8.0;
 
 package Net::DHCP;
 
+our $multi_value_array_ref = 0;
 
 1;
 
