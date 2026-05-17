@@ -557,17 +557,41 @@ sub serialize {
                 }
             }
             elsif ( is_plain_hashref($self->{options}->{$key}) ) {
-                my $subbytes = q{};
+                my @chunks;
+                my $current = q{};
                 for my $subkey ( @{ $self->{sub_options_order}->{$key} } ) {
-                    $subbytes .= pack( 'C',    $subkey );
-                    $subbytes .= pack( 'C/a*', $self->{options}->{$key}->{$subkey} );
+                    my $entry = pack( 'C',    $subkey )
+                              . pack( 'C/a*', $self->{options}->{$key}->{$subkey} );
+                    if (byte_len($entry) > MAX_OPTION_DATA_LEN) {
+                        croak(
+                            "serialize: single suboption $subkey for option $key "
+                          . "exceeds MAX_OPTION_DATA_LEN"
+                        );
+                    }
+                    if (byte_len($current) + byte_len($entry) > MAX_OPTION_DATA_LEN) {
+                        push @chunks, $current if byte_len($current);
+                        $current = q{};
+                    }
+                    $current .= $entry;
                 }
-                $bytes .= pack( 'C',    $key );
-                $bytes .= pack( 'C', byte_len($subbytes) ) . $subbytes;
+                push @chunks, $current if byte_len($current);
+                for my $chunk (@chunks) {
+                    if (byte_len($chunk) > MAX_OPTION_DATA_LEN) {
+                        carp "serialize: suboption data for option $key exceeds MAX_OPTION_DATA_LEN";
+                    }
+                    $bytes .= pack( 'C',    $key );
+                    $bytes .= pack( 'C', byte_len($chunk) ) . $chunk;
+                }
             }
             else {
-                $bytes .= pack( 'C',    $key );
-                $bytes .= pack( 'C/a*', $self->{options}->{$key} );
+                my $data = $self->{options}->{$key};
+                while (byte_len($data) > 0) {
+                    my $n = byte_len($data);
+                    $n = MAX_OPTION_DATA_LEN if $n > MAX_OPTION_DATA_LEN;
+                    $bytes .= pack('C', $key);
+                    $bytes .= pack('C', $n) . substr($data, 0, $n);
+                    $data = substr($data, $n);
+                }
             }
         }
         $bytes .= pack( 'C', DHO_END() );
@@ -833,7 +857,17 @@ sub _parse_option_buffer {
         last if $type == DHO_END();
         my $len = ord(substr($buf, $pos++, 1));
         $len = $total - $pos if $pos + $len > $total;
-        $self->addOptionRaw($type, substr($buf, $pos, $len));
+        my $data = substr($buf, $pos, $len);
+        # RFC 3396: concatenate duplicate option instances
+        if (exists $self->{options}->{$type}) {
+            $self->{options}->{$type} .= $data;
+        }
+        else {
+            $self->{options}->{$type} = $data;
+        }
+        if ( none { $_ == $type } @{ $self->{options_order} } ) {
+            push @{ $self->{options_order} }, $type;
+        }
         $pos += $len;
     }
     return ($type, $pos);
@@ -1590,10 +1624,19 @@ Examples:
 
 Converts a Net::DHCP::Packet to a string, ready to put on the network.
 
+If any option's packed data exceeds 255 bytes, it is split into multiple
+option instances per RFC 3396 (Long Options). This applies to all option
+storage types: scalars, arrayrefs (e.g. CSR), and hashrefs (suboptions).
+
 =item marshall( BYTES )
 
 The inverse of serialize. Converts a string, presumably a
 received UDP packet, into a Net::DHCP::Packet.
+
+Per RFC 3396, duplicate option instances are automatically concatenated
+during parsing. Packets with options split across multiple instances
+(e.g. vendor-specific options with more than 255 bytes of suboptions)
+are reconstructed correctly.
 
 If the packet is malformed, a fatal error is produced.
 
