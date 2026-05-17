@@ -893,7 +893,8 @@ To supply pre-encoded RFC 3004 data, use C<addOptionRaw>.
 
 Automatic parsing of DHO_VENDOR_ENCAPSULATED_OPTIONS (code 43) is unsupported.
 
-Automatic parsing of DHO_NWIP_SUBOPTIONS (code 63 - rfc 2242) is unsupported.
+DHO_AUTHENTICATION (code 90, rfc 3118) has a structured format
+(protocol/algorithm/RDM/replay/auth-info) and is not parsed — returns raw bytes.
 
 =head1 SEE ALSO
 
