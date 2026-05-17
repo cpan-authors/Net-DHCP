@@ -837,15 +837,15 @@ sub _parse_option_buffer {
     return ($type, $pos);
 }
 
-sub MIN_PRINTABLE_ASCII     () { 32 }
-sub MAX_PRINTABLE_ASCII     () { 127 }
-sub PRINTABLE_STRING_THRESHOLD () { 0.7 } # ≥70% printable → treat as text. Printable ASCII (32–126) covers 95/256 (37%) of byte values, so pure binary averages ~37% while real text is near 100%; 70% cleanly separates them.
+sub _MIN_PRINTABLE_ASCII     () { 32 }
+sub _MAX_PRINTABLE_ASCII     () { 127 }
+sub _PRINTABLE_STRING_THRESHOLD () { 0.7 } # ≥70% printable → treat as text. Printable ASCII (32–126) covers 95/256 (37%) of byte values, so pure binary averages ~37% while real text is near 100%; 70% cleanly separates them.
 
 sub _is_printable_string {
     my $str = shift;
     return 0 unless defined $str && length $str;
-    my $printable = grep { ord($_) >= MIN_PRINTABLE_ASCII() && ord($_) < MAX_PRINTABLE_ASCII() } split(//, $str);
-    return ($printable / length($str)) > PRINTABLE_STRING_THRESHOLD();
+    my $printable = grep { ord($_) >= _MIN_PRINTABLE_ASCII() && ord($_) < _MAX_PRINTABLE_ASCII() } split(//, $str);
+    return ($printable / length($str)) > _PRINTABLE_STRING_THRESHOLD();
 }
 
 sub _printable {
@@ -1609,6 +1609,7 @@ Returns a textual representation of the packet, for debugging.
 
 Transforms an list of lists into packed option.
 For option 43 (vendor specific), 82 (relay agent) etc.
+Output is canonical TLV: C<type|len|data> triplets with no outer wrapping.
 
 =item unpacksuboptions( STRING )
 
