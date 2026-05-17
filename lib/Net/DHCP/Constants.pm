@@ -493,19 +493,19 @@ our %DHO_FORMATS = (
 );
 
 %RELAYAGENT_FORMATS = (
-        RAI_CIRCUIT_ID()       => 'hexa',
-        RAI_REMOTE_ID()        => 'hexa',
-#         RAI_AGENT_ID()           => 'hexa',
-#         RAI_DOCSIS_CLASS()       => 'hexa',
-#         RAI_LINK_SELECTION()     => 'hexa',
-#         RAI_SUBSCRIBER_ID()      => 'hexa',
-#         RAI_RADIUS_ATTRIBUTES()  => 'hexa',
-#         RAI_AUTHENTICATION()     => 'hexa',
-        RAI_VENDOR_INFO()        => 'hexa',
-#         RAI_FLAGS()              => 'hexa',
-#         RAI_SERVER_ID_OVERRIDE() => 'hexa',
-#         RAI_DHCPV4_VIRTUAL_SUBNET_SELECTION() => 'hexa',
-#         RAI_DHCPV4_VIRTUAL_SUBNET_SELECTION_CONTROL() => 'hexa',
+        RAI_CIRCUIT_ID()                              => 'circuit_id',
+        RAI_REMOTE_ID()                               => 'remote_id',
+        RAI_AGENT_ID()                                => 'hexa',
+        RAI_DOCSIS_CLASS()                            => 'hexa',
+        RAI_LINK_SELECTION()                          => 'inet',
+        RAI_SUBSCRIBER_ID()                           => 'string',
+        RAI_RADIUS_ATTRIBUTES()                       => 'hexa',
+        RAI_AUTHENTICATION()                          => 'hexa',
+        RAI_VENDOR_INFO()                             => 'hexa',
+        RAI_FLAGS()                                   => 'byte',
+        RAI_SERVER_ID_OVERRIDE()                      => 'inet',
+        RAI_DHCPV4_VIRTUAL_SUBNET_SELECTION()         => 'hexa',
+        RAI_DHCPV4_VIRTUAL_SUBNET_SELECTION_CONTROL() => 'hexa',
 ),
 
 %REV_RELAYAGENT_FORMATS = reverse %RELAYAGENT_FORMATS;

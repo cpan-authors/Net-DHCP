@@ -276,7 +276,7 @@ sub addSubOptionValue {
     }
 
     # verify number of parameters
-    if ( $format eq 'string' ) {
+    if ( $format eq 'string' || $format eq 'circuit_id' || $format eq 'remote_id' ) {
         @values = ($value);                # don't change format
     }
     elsif ( $format =~ m/s$/ )
@@ -307,6 +307,8 @@ sub addSubOptionValue {
         },
         string => sub { return shift },
         hexa => sub { return pack( 'H*', shift ) },
+        circuit_id => sub { return _pack_circuit_id(shift) },
+        remote_id  => sub { return _pack_remote_id(shift) },
     );
 
     #  } elsif ($format eq 'ids') {
@@ -337,7 +339,7 @@ sub getOptionValue {
     my $format = $DHO_FORMATS{$code};
     my $subcodes;
 
-    if (defined $format && $format eq 'suboptions') {
+    if (_is_value($format, 'suboptions')) {
         $subcodes = $REV_SUBOPTION_CODES{$code} || {}
     }
 
@@ -392,6 +394,64 @@ sub getSubOptionRaw {
     return;
 }
 
+sub _format_circuit_id {
+    my $bin = shift;
+    my $len = length($bin);
+    return '' unless $len;
+    if ($len >= 6 && substr($bin, 0, 2) eq "\x00\x04") {
+        my ($vlan, $module, $port) = unpack('x2 n C C', $bin);
+        return sprintf('VLAN=%d Module=%d Port=%d', $vlan, $module, $port);
+    }
+    if (ord(substr($bin, 0, 1)) == 0x01) {
+        my $str = substr($bin, 1);
+        return defined $str && length $str ? $str : '';
+    }
+    return unpack('H*', $bin);
+}
+
+sub _format_remote_id {
+    my $bin = shift;
+    my $len = length($bin);
+    return '' unless $len;
+    if ($len >= 8 && substr($bin, 0, 2) eq "\x00\x06") {
+        return join(':', unpack('(H2)*', substr($bin, 2, 6)));
+    }
+    if (ord(substr($bin, 0, 1)) == 0x01) {
+        my $str = substr($bin, 1);
+        return defined $str && length $str ? $str : '';
+    }
+    return unpack('H*', $bin);
+}
+
+sub _pack_circuit_id {
+    my $val = shift;
+    return '' unless defined $val && length $val;
+    if ($val =~ m/^[0-9a-fA-F]+$/) {
+        carp("_pack_circuit_id: odd-length hex string, trailing nibble dropped")
+          if length($val) % 2;
+        return pack('H*', $val);
+    }
+    if ($val =~ m/^VLAN=(\d+)\s+Module=(\d+)\s+Port=(\d+)$/) {
+        return pack('C C n C C', 0x00, 0x04, $1, $2, $3);
+    }
+    return pack('C a*', 0x01, $val);
+}
+
+sub _pack_remote_id {
+    my $val = shift;
+    return '' unless defined $val && length $val;
+    if ($val =~ m/^[0-9a-fA-F]{2}(?::[0-9a-fA-F]{2}){5}$/) {
+        my $bin = pack('H*', join('', split(':', $val)));
+        return pack('C C a6', 0x00, 0x06, $bin);
+    }
+    if ($val =~ m/^[0-9a-fA-F]+$/) {
+        carp("_pack_remote_id: odd-length hex string, trailing nibble dropped")
+          if length($val) % 2;
+        return pack('H*', $val);
+    }
+    return pack('C a*', 0x01, $val);
+}
+
 my %unpack = (
     inet   => sub { return unpackinets_array(shift) },
     inets  => sub { return unpackinets_array(shift) },
@@ -403,6 +463,8 @@ my %unpack = (
     bytes  => sub { return unpack('C*',         shift) },
     string => sub { return                     shift },
     hexa   => sub { return unpack('H*',         shift) },
+    circuit_id => sub { return _format_circuit_id(shift) },
+    remote_id  => sub { return _format_remote_id(shift) },
 );
 
 sub getSubOptionValue {
@@ -704,6 +766,15 @@ sub toString {
                     my $raw = $self->getSubOptionRaw($key, $subkey);
                     $subvalue = defined $raw ? unpack('H*', $raw) : '';
                 }
+                else {
+                    my $format = $SUBOPTION_FORMATS{$key}->{$subkey};
+                    if (_is_value($format, 'hexa')) {
+                        my $raw = $self->getSubOptionRaw($key, $subkey);
+                        if (defined $raw && _is_printable_string($raw)) {
+                            $subvalue = $raw;
+                        }
+                    }
+                }
                 $subvalue = _printable($subvalue);
                 $s .= sprintf("   %s(%d) = %s\n",
                     exists $SUBOPTION_CODES{$key} && exists $REV_SUBOPTION_CODES{$key}{$subkey}
@@ -759,6 +830,17 @@ sub _parse_option_buffer {
     return ($type, $pos);
 }
 
+sub MIN_PRINTABLE_ASCII     () { 32 }
+sub MAX_PRINTABLE_ASCII     () { 127 }
+sub PRINTABLE_STRING_THRESHOLD () { 0.7 } # ≥70% printable → treat as text. Printable ASCII (32–126) covers 95/256 (37%) of byte values, so pure binary averages ~37% while real text is near 100%; 70% cleanly separates them.
+
+sub _is_printable_string {
+    my $str = shift;
+    return 0 unless defined $str && length $str;
+    my $printable = grep { ord($_) >= MIN_PRINTABLE_ASCII() && ord($_) < MAX_PRINTABLE_ASCII() } split(//, $str);
+    return ($printable / length($str)) > PRINTABLE_STRING_THRESHOLD();
+}
+
 sub _printable {
     my $str = shift;
     $str =~ s/([[:^print:]])/ sprintf q[\x%02X], ord $1 /eg;
@@ -768,6 +850,11 @@ sub _printable {
 sub _nonempty {
     my $val = shift;
     return defined $val && length $val;
+}
+
+sub _is_value {
+    my ($var, $val) = @_;
+    return defined $var && $var eq $val;
 }
 
 sub packsuboptions {
