@@ -21,6 +21,7 @@ use Net::DHCP::Constants qw(
 use Net::DHCP::Packet::Attributes qw(:all);
 use Net::DHCP::Packet::IPv4Utils qw(:all);
 use Net::DHCP::Packet::OrderOptions qw( reorder_options );
+use Net::DHCP;
 use List::Util qw( any first none );
 use Ref::Util qw( is_plain_arrayref is_plain_hashref is_ref );
 
@@ -51,6 +52,7 @@ my %newargs = (
     File    => \&file,
     Padding => \&padding,
     isDhcp  => \&isDhcp,
+    multi_value_array_ref => sub { $_[0]->multi_value_array_ref($_[1]) },
 
 );
 
@@ -88,6 +90,9 @@ sub new {
 
     # single argument means deserialize from binary packet buffer
     if (scalar @_ == 1) {
+        if ( !exists $self->{multi_value_array_ref} ) {
+            $self->{multi_value_array_ref} = $Net::DHCP::multi_value_array_ref;
+        }
         $self->marshall(shift);
         return $self;
     }
@@ -123,10 +128,24 @@ sub new {
         $self->addOptionValue($pair->[0], $pair->[1]);
     }
 
+    # fall back to global if not set by constructor arg
+    if ( !exists $self->{multi_value_array_ref} ) {
+        $self->{multi_value_array_ref} = $Net::DHCP::multi_value_array_ref;
+    }
+
     return $self
 
 }
 
+}
+
+sub multi_value_array_ref {
+    my $self = shift;
+    if (@_) {
+        $self->{multi_value_array_ref} = shift ? 1 : 0;
+        return $self;
+    }
+    return exists $self->{multi_value_array_ref} ? $self->{multi_value_array_ref} : 0;
 }
 
 sub addOptionRaw {
@@ -371,7 +390,10 @@ sub getOptionValue {
         bytes  => sub { return unpack( 'C*', shift ) },
         string => sub { return shift },
         clientid   => sub { return unpackclientid(shift) },
-        userclass  => sub { return unpackuserclass(shift) },
+        userclass  => sub {
+            my $val = unpackuserclass(shift);
+            return defined $val ? split( /,\s*/, $val ) : ();
+        },
         sipserv    => sub { return unpacksipserv(shift) },
         csr        => sub { return unpackcsr(shift) },
         hexa       => sub { return unpack('H*', shift) },
@@ -385,10 +407,16 @@ sub getOptionValue {
 
     # decode the options if we know the format
     if (defined $format && $options{$format}) {
-        $value_bin = join(q|, |,
-        map { is_ref($_) ? sprintf '%s => %s', $subcodes->{$_->[0]} || $_->[0],
-            do { my $v = $_->[1]; if ($v =~ m/[ ,"]/) { $v =~ s/\\/\\\\/g; $v =~ s/"/\\"/g } $v = _printable($v); $v = qq("$v") if $v =~ m/[ ,"]/; $v } : $_ }
-        ( $options{$format}->($value_bin) ))
+        my @decoded = map {
+            is_ref($_) ? sprintf '%s => %s', $subcodes->{$_->[0]} || $_->[0],
+                do { my $v = $_->[1]; if ($v =~ m/[ ,"]/) { $v =~ s/\\/\\\\/g; $v =~ s/"/\\"/g } $v = _printable($v); $v = qq("$v") if $v =~ m/[ ,"]/; $v } : $_
+        } $options{$format}->($value_bin);
+        if ( $self->{multi_value_array_ref} ) {
+            $value_bin = \@decoded;
+        }
+        else {
+            $value_bin = join(q|, |, @decoded);
+        }
     }
 
     # if we cant work out the format
@@ -1673,6 +1701,21 @@ Setting the level to 2 means the packet length checks are skipped
 altogether.
 
 Without a parameter, the method returns the current level.
+
+=item C<multi_value_array_ref> (BOOL)
+
+Controls whether C<getOptionValue> returns multi-value options as
+arrayrefs instead of comma-joined strings. Affects all plural DHCP
+option formats (inets, bytes, shorts, userclass, csr, etc.).
+
+When enabled, C<getOptionValue(6)> returns C<["10.0.0.1", "10.0.0.2"]>
+instead of C<"10.0.0.1, 10.0.0.2">.
+
+May also be set globally via C<$Net::DHCP::multi_value_array_ref> or
+passed as a constructor argument. The instance value is captured at
+construction time and is independent of the global thereafter.
+
+Default is disabled (legacy comma-joined string behavior).
 
 =back
 
