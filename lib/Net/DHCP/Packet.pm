@@ -21,8 +21,8 @@ use Net::DHCP::Constants qw(
 use Net::DHCP::Packet::Attributes qw(:all);
 use Net::DHCP::Packet::IPv4Utils qw(:all);
 use Net::DHCP::Packet::OrderOptions qw( reorder_options );
-use List::Util qw(any first none);
-use Ref::Util qw(is_ref is_plain_arrayref is_plain_hashref);
+use List::Util qw( any first none );
+use Ref::Util qw( is_plain_arrayref is_plain_hashref is_ref );
 
 my $UINT8_MASK = 255;
 my $OPTION_VALUE_SPLIT = qr/[\s\/,;]+/;
