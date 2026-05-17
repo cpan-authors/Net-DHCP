@@ -16,6 +16,7 @@ Some files in t/data are copied from various sources:
 - http://packetlife.net/captures/DHCP_Inter_VLAN.cap (original source forgotten)
 - http://uluru.ee.unsw.edu.au/~tim/zoo/f994f275.pcap
 - https://wiki.wireshark.org/SampleCaptures?action=AttachFile&do=get&target=dhcp-auth.pcap.gz
+- https://wiki.wireshark.org/SampleCaptures?action=AttachFile&do=get&target=dhcpfo.pcapng
 
 Test files referencing the above:
 - t/102-discover-offer-request-ack.t       — vanilla DORA
@@ -25,6 +26,7 @@ Test files referencing the above:
 - t/106-discover-offer-o60-o43-o82.t       — options 60, 43, 82
 - t/107-query-active-qry-unass-qry-unk.t   — DHCPLEASEACTIVE / UNASSIGNED / UNKNOWN responses to DHCPINFORM
 - t/108-discover-offer-o12-o55-o61.t       — relay DORA with options 12, 55, 61
+- t/109-dhcpfo-inform-release-o77.t        — DHCPINFORM, RELEASE, User-Class (77)
 
 All other files are licensed as described at the bottom of this file.
 
