@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 14;
+use Test::More tests => 17;
 
 BEGIN { use_ok( 'Net::DHCP::Packet' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants' ); }
@@ -15,6 +15,8 @@ sub pcsr { Net::DHCP::Packet::packcsr(@_) }
 sub ucsr { Net::DHCP::Packet::unpackcsr(@_) }
 sub psub { Net::DHCP::Packet::packsuboptions(@_) }
 sub usub { Net::DHCP::Packet::unpacksuboptions(@_) }
+sub puc  { Net::DHCP::Packet::packuserclass(@_) }
+sub uuc  { Net::DHCP::Packet::unpackuserclass(@_) }
 
 # ----- packclientid / unpackclientid -----
 
@@ -411,4 +413,75 @@ subtest 'multi-chunk CSR round-trip' => sub {
     for my $i (1..30) {
         like($csr_val, qr/10\.0\.0\.$i\/32/, "route $i survived round-trip");
     }
+};
+
+# ----- packuserclass / unpackuserclass -----
+
+subtest 'packuserclass / unpackuserclass' => sub {
+    plan tests => 20;
+
+    # --- packuserclass: single value ---
+    my $bin = puc('ipxe');
+    is(length $bin, 5,                           'single userclass: 1 + 4 bytes');
+    is(ord(substr $bin, 0, 1), 4,                'length byte = 4');
+    is(substr($bin, 1), 'ipxe',                  'data = "ipxe"');
+
+    # --- packuserclass: multiple values ---
+    $bin = puc('ipxe', 'BIOS');
+    is(length $bin, 10,                          'two userclasses: 2 * (1 + 4)');
+    my $pos = 0;
+    is(ord(substr $bin, $pos, 1), 4,             'first block length = 4');
+    $pos++;
+    is(substr($bin, $pos, 4), 'ipxe',            'first block data = "ipxe"');
+    $pos += 4;
+    is(ord(substr $bin, $pos, 1), 4,             'second block length = 4');
+    $pos++;
+    is(substr($bin, $pos, 4), 'BIOS',            'second block data = "BIOS"');
+
+    # --- packuserclass: value with spaces (preserved as one block) ---
+    $bin = puc('foo bar');
+    is(length $bin, 8,                           'spaced value: 1 + 7 bytes');
+    is(ord(substr $bin, 0, 1), 7,                'length byte = 7');
+    is(substr($bin, 1), 'foo bar',               'data = "foo bar" (preserved)');
+
+    # --- packuserclass: undef and empty skipped ---
+    $bin = puc('a', undef, '', 'b');
+    is(length $bin, 4,                           'two of four non-empty');
+    is(ord(substr $bin, 0, 1), 1,                'first block length = 1');
+    is(substr($bin, 1, 1), 'a',                  'first block data = "a"');
+    is(ord(substr $bin, 2, 1), 1,                'second block length = 1');
+    is(substr($bin, 3, 1), 'b',                  'second block data = "b"');
+
+    # --- unpackuserclass: single block ---
+    $bin = pack('C/a*', 'ipxe');
+    is(uuc($bin), 'ipxe',                        'single block decoded');
+
+    # --- unpackuserclass: multiple blocks ---
+    $bin = pack('C/a*', 'ipxe') . pack('C/a*', 'BIOS');
+    is(uuc($bin), 'ipxe, BIOS',                  'two blocks joined with comma');
+
+    # --- unpackuserclass: undef / empty ---
+    is(uuc(undef), undef,                        'unpackuserclass undef returns undef');
+    is(uuc(''),    undef,                        'unpackuserclass empty returns undef');
+};
+
+# ----- userclass addOptionValue multi-class round-trip -----
+
+subtest 'userclass addOptionValue multi-class round-trip' => sub {
+    plan tests => 3;
+
+    my $p = Net::DHCP::Packet->new;
+    $p->addOptionValue(DHO_USER_CLASS(), 'ipxe, BIOS');
+
+    my $wire = $p->serialize;
+    my $p2   = Net::DHCP::Packet->new($wire);
+
+    ok(defined $p2, 'deserialized userclass packet');
+
+    my $val = $p2->getOptionValue(DHO_USER_CLASS());
+    is($val, 'ipxe, BIOS', 'round-trip: split -> pack -> serialize -> parse -> join');
+
+    # Also verify via raw: two RFC 3004 blocks
+    my $raw = $p2->getOptionRaw(DHO_USER_CLASS());
+    is(length($raw), 10, 'two userclass blocks on wire: 2 * (1 + 4) bytes');
 };

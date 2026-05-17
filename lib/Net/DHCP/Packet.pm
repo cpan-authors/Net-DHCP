@@ -168,7 +168,10 @@ sub addOptionValue {
 
     # decompose input value into an array
     my @values;
-    if ( defined $value && $value ne q|| ) {
+    if (ref $value eq 'ARRAY') {
+        @values = @$value;
+    }
+    elsif ( defined $value && $value ne q|| ) {
         @values = split( $OPTION_VALUE_SPLIT, $value );
     }
 
@@ -202,6 +205,7 @@ sub addOptionValue {
         },
         string     => sub { return shift },
         clientid   => sub { return packclientid(shift) },
+        userclass  => sub { return packuserclass(@_) },
         sipserv    => sub { return packsipserv(shift) },
         csr        => sub { return packcsr(shift) },
         hexa       => sub { return pack('H*', shift) },
@@ -365,6 +369,7 @@ sub getOptionValue {
         bytes  => sub { return unpack( 'C*', shift ) },
         string => sub { return shift },
         clientid   => sub { return unpackclientid(shift) },
+        userclass  => sub { return unpackuserclass(shift) },
         sipserv    => sub { return unpacksipserv(shift) },
         csr        => sub { return unpackcsr(shift) },
         hexa       => sub { return unpack('H*', shift) },
@@ -990,6 +995,35 @@ sub unpacksipserv {
 
 }
 
+sub packuserclass {
+    my $buf = '';
+    for my $val (@_) {
+        next unless defined $val && length $val;
+        $buf .= pack('C/a*', $val);
+    }
+    return $buf;
+}
+
+sub unpackuserclass {
+    my $data = shift;
+    return unless _nonempty($data);
+
+    my @values;
+    my $pos = 0;
+    my $len = length $data;
+    while ($pos < $len) {
+        my $clen = ord(substr $data, $pos, 1);
+        $pos++;
+        if ($pos + $clen > $len) {
+            carp('unpackuserclass: truncated user class option');
+            last;
+        }
+        push @values, substr $data, $pos, $clen;
+        $pos += $clen;
+    }
+    return join(', ', @values);
+}
+
 sub packcsr {
     my $routes = shift;
     return [''] unless defined $routes;
@@ -1340,6 +1374,20 @@ IPv4 string like C<"10.0.0.1">.
 
 Returns the unpacked Classless Static Route as a list of alternating
 prefix/mask and gateway strings (e.g. C<"10.0.0.0/8", "10.0.0.1">).
+
+=item I<packuserclass( VALUE [, VALUE...] )>
+
+returns the packed User Class option (code 77) per RFC 3004.
+Each value is encoded as a C<[len][data]> block. Accepts one
+or more strings; C<undef> and empty strings are skipped.
+
+    packuserclass('ipxe')
+    packuserclass('ipxe', 'BIOS')
+
+=item I<unpackuserclass( STRING )>
+
+returns the unpacked User Class option (code 77). Decodes
+each C<[len][data]> block and joins them with C<', '>.
 
 =item I<addOption( CODE, VALUE )>
 

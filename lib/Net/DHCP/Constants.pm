@@ -501,9 +501,7 @@ our %DHO_FORMATS = (
     DHO_CCC()                         => 'suboptions', # 122
     DHO_GEOCONF()                     => 'suboptions', # rfc 6225
 
-    # While not perfect, usage is primarily as a string.  iPXE is
-    # a common use case for this option.
-    DHO_USER_CLASS()                  => 'string',     # rfc 3004
+    DHO_USER_CLASS()                  => 'userclass',  # rfc 3004
 #    DHO_FQDN()  => '',                              # draft-ietf-dhc-fqdn-option-10.txt
     DHO_DHCP_AGENT_OPTIONS()           => 'suboptions', # rfc 3046
 #    DHO_DHCP_AGENT_OPTIONS()           => 'string',    # rfc 3046
@@ -861,13 +859,41 @@ Import all DHCP Agenet (aka Relay Agent) Codes
 
 =back
 
+=head1 DHO_FORMATS
+
+Format strings used by the option code to format mapping
+in C<%DHO_FORMATS>. Each key is a DHCP option code; each
+value describes how that option is encoded on the wire.
+
+The following formats are supported:
+
+=over
+
+=item B<userclass>
+
+Encodes/decodes option 77 (C<DHO_USER_CLASS>) per RFC 3004.
+Each C<[len][data]> block represents one user class identifier.
+C<addOptionValue> accepts either a scalar (single class) or
+an arrayref (multiple classes):
+
+    $packet->addOptionValue(77, 'ipxe');
+    # wire: \x04ipxe
+
+    $packet->addOptionValue(77, ['ipxe', 'BIOS']);
+    # wire: \x04ipxe\x04BIOS
+
+C<getOptionValue> returns a comma-separated string of all
+decoded blocks.
+
+To supply pre-encoded RFC 3004 data, use C<addOptionRaw>.
+
+=back
+
 =head1 TO DO, LIMITATIONS
 
 Automatic parsing of DHO_VENDOR_ENCAPSULATED_OPTIONS (code 43) is unsupported.
 
 Automatic parsing of DHO_NWIP_SUBOPTIONS (code 63 - rfc 2242) is unsupported.
-
-Automatic parsing of DHO_USER_CLASS (code 77 - rfc 3004) is unsupported.
 
 =head1 SEE ALSO
 

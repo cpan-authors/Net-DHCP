@@ -54,7 +54,7 @@ my %tests = (
     53 => 1,
     12 => 'dhcptestclient',
     55 => '1, 28, 2, 3, 15, 6, 119, 12, 44, 47, 26, 121, 42, 77',
-    77 => "\x06markku",
+     77 => 'markku',
 }],
 
 # relayed OFFER with siaddr set
@@ -106,7 +106,7 @@ my %tests = (
     53 => 7,
     54 => '10.0.41.30',
     12 => 'dhcptestclient',
-    77 => "\x06markku",
+     77 => 'markku',
 }],
 
 );
