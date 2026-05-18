@@ -30,31 +30,31 @@ our ( %VENDOR43_FORMATS, %REV_VENDOR43_FORMATS );
 our ( %SUBOPTION_CODES,  %REV_SUBOPTION_CODES );
 
 our %EXPORT_TAGS = (
-    dho_codes     => [ keys %DHO_CODES ],
-    dhcp_message  => [ keys %DHCP_MESSAGE ],
-    bootp_codes   => [ keys %BOOTP_CODES ],
-    htype_codes   => [ keys %HTYPE_CODES ],
-    nwip_codes    => [ keys %NWIP_CODES ],
-    ccc_codes     => [ keys %CCC_CODES ],
-    geoconf_codes => [ keys %GEOCONF_CODES ],
-    ra_codes      => [ keys %RELAYAGENT_CODES ],
+    dho_codes      => [ keys %DHO_CODES ],
+    dhcp_message   => [ keys %DHCP_MESSAGE ],
+    bootp_codes    => [ keys %BOOTP_CODES ],
+    htype_codes    => [ keys %HTYPE_CODES ],
+    nwip_codes     => [ keys %NWIP_CODES ],
+    ccc_codes      => [ keys %CCC_CODES ],
+    geoconf_codes  => [ keys %GEOCONF_CODES ],
+    ra_codes       => [ keys %RELAYAGENT_CODES ],
     vendor43_codes => [ keys %VENDOR43_CODES ],
-    dhcp_hashes   => [
+    dhcp_hashes    => [
         qw(
-          %DHO_CODES %REV_DHO_CODES
-          %DHCP_MESSAGE %REV_DHCP_MESSAGE
-          %BOOTP_CODES %REV_BOOTP_CODES
-          %NWIP_CODES %REV_NWIP_CODES
-          %NWIP_FORMATS %REV_NWIP_FORMATS
-          %CCC_CODES %REV_CCC_CODES
-          %CCC_FORMATS %REV_CCC_FORMATS
-          %HTYPE_CODES %REV_HTYPE_CODES
-          %GEOCONF_CODES %REV_GEOCONF_CODES
-          %GEOCONF_FORMATS %REV_GEOCONF_FORMATS
-          %RELAYAGENT_CODES %REV_RELAYAGENT_CODES
-          %VENDOR43_CODES %REV_VENDOR43_CODES
-          %VENDOR43_FORMATS %REV_VENDOR43_FORMATS
-          %SUBOPTION_CODES %REV_SUBOPTION_CODES
+          %DHO_CODES           %REV_DHO_CODES
+          %DHCP_MESSAGE        %REV_DHCP_MESSAGE
+          %BOOTP_CODES         %REV_BOOTP_CODES
+          %NWIP_CODES          %REV_NWIP_CODES
+          %NWIP_FORMATS        %REV_NWIP_FORMATS
+          %CCC_CODES           %REV_CCC_CODES
+          %CCC_FORMATS         %REV_CCC_FORMATS
+          %HTYPE_CODES         %REV_HTYPE_CODES
+          %GEOCONF_CODES       %REV_GEOCONF_CODES
+          %GEOCONF_FORMATS     %REV_GEOCONF_FORMATS
+          %RELAYAGENT_CODES    %REV_RELAYAGENT_CODES
+          %VENDOR43_CODES      %REV_VENDOR43_CODES
+          %VENDOR43_FORMATS    %REV_VENDOR43_FORMATS
+          %SUBOPTION_CODES     %REV_SUBOPTION_CODES
           )
     ],
     dhcp_other => [
@@ -67,24 +67,23 @@ our %EXPORT_TAGS = (
 );
 
 our @EXPORT_OK = qw(
-  %DHO_CODES %REV_DHO_CODES
-  %DHCP_MESSAGE %REV_DHCP_MESSAGE
-  %BOOTP_CODES %REV_BOOTP_CODES
-  %NWIP_CODES %REV_NWIP_CODES
-  %NWIP_FORMATS %REV_NWIP_FORMATS
-  %HTYPE_CODES %REV_HTYPE_CODES
-  %CCC_CODES %REV_CCC_CODES
-  %CCC_FORMATS %REV_CCC_FORMATS
+  %DHO_CODES           %REV_DHO_CODES
+  %DHCP_MESSAGE        %REV_DHCP_MESSAGE
+  %BOOTP_CODES         %REV_BOOTP_CODES
+  %NWIP_CODES          %REV_NWIP_CODES
+  %NWIP_FORMATS        %REV_NWIP_FORMATS
+  %HTYPE_CODES         %REV_HTYPE_CODES
+  %CCC_CODES           %REV_CCC_CODES
+  %CCC_FORMATS         %REV_CCC_FORMATS
   %DHO_FORMATS
   %SUBOPTION_FORMATS
-  %GEOCONF_CODES %REV_GEOCONF_CODES
-  %GEOCONF_FORMATS %REV_GEOCONF_FORMATS
-  %RELAYAGENT_CODES %REV_RELAYAGENT_CODES
-  %VENDOR43_CODES %REV_VENDOR43_CODES
-  %VENDOR43_FORMATS %REV_VENDOR43_FORMATS
-  %SUBOPTION_CODES  %REV_SUBOPTION_CODES
+  %GEOCONF_CODES       %REV_GEOCONF_CODES
+  %GEOCONF_FORMATS     %REV_GEOCONF_FORMATS
+  %RELAYAGENT_CODES    %REV_RELAYAGENT_CODES
+  %VENDOR43_CODES      %REV_VENDOR43_CODES
+  %VENDOR43_FORMATS    %REV_VENDOR43_FORMATS
+  %SUBOPTION_CODES     %REV_SUBOPTION_CODES
   %REV_SUBOPTION_FORMATS
-
 );
 Exporter::export_tags('dho_codes');
 Exporter::export_tags('dhcp_message');
@@ -98,26 +97,26 @@ Exporter::export_ok_tags('dhcp_other');
 Exporter::export_ok_tags('ra_codes');
 
 # MAGIC_COOKIE for DHCP (otherwise it is BOOTP)
-use constant MAGIC_COOKIE     => "\x63\x82\x53\x63";
-use constant MAGIC_COOKIE_LEN => 4;
+use constant MAGIC_COOKIE            => "\x63\x82\x53\x63";
+use constant MAGIC_COOKIE_LEN        => 4;
 
-use constant ETHERNET_HEADER_LEN  => 14;
-use constant IP_HEADER_LEN        => 20;
-use constant UDP_HEADER_LEN       => 8;
-use constant DHCP_UDP_OVERHEAD    => ( ETHERNET_HEADER_LEN + IP_HEADER_LEN + UDP_HEADER_LEN );
-use constant DHCP_MAX_MTU           => 1500;
-use constant BOOTP_ABSOLUTE_MIN_LEN => 236;
-use constant BOOTP_MIN_LEN          => 300;
-use constant DHCP_MIN_LEN           => 548;
+use constant ETHERNET_HEADER_LEN     => 14;
+use constant IP_HEADER_LEN           => 20;
+use constant UDP_HEADER_LEN          => 8;
+use constant DHCP_UDP_OVERHEAD       => ( ETHERNET_HEADER_LEN + IP_HEADER_LEN + UDP_HEADER_LEN );
+use constant DHCP_MAX_MTU            => 1500;
+use constant BOOTP_ABSOLUTE_MIN_LEN  => 236;
+use constant BOOTP_MIN_LEN           => 300;
+use constant DHCP_MIN_LEN            => 548;
 
-use constant ETHERNET_MAC_LEN     => 6;
-use constant MAX_OPTION_DATA_LEN  => 255;
-use constant IPV4_MAX_PREFIX_LEN  => 32;
-use constant BITS_PER_BYTE        => 8;
-use constant CLIENTID_TYPE_FQDN   => 0;
-use constant CLIENTID_TYPE_ETHER  => 1;
-use constant SIPSERV_TYPE_FQDN    => 0;
-use constant SIPSERV_TYPE_IPV4    => 1;
+use constant ETHERNET_MAC_LEN        => 6;
+use constant MAX_OPTION_DATA_LEN     => 255;
+use constant IPV4_MAX_PREFIX_LEN     => 32;
+use constant BITS_PER_BYTE           => 8;
+use constant CLIENTID_TYPE_FQDN      => 0;
+use constant CLIENTID_TYPE_ETHER     => 1;
+use constant SIPSERV_TYPE_FQDN       => 0;
+use constant SIPSERV_TYPE_IPV4       => 1;
 
 BEGIN {
     %BOOTP_CODES = (
@@ -126,9 +125,9 @@ BEGIN {
     );
 
     %HTYPE_CODES = (
-        'HTYPE_ETHER'   => 1,
-        'HTYPE_IEEE802' => 6,
-        'HTYPE_FDDI'    => 8,
+        'HTYPE_ETHER'      => 1,
+        'HTYPE_IEEE802'    => 6,
+        'HTYPE_FDDI'       => 8,
         'HTYPE_INFINIBAND' => 32,
     );
 
@@ -547,7 +546,7 @@ our %DHO_FORMATS = (
     DHO_NAME_SERVICE_SEARCH()          => 'shorts',    # rfc 2937
     DHO_SUBNET_SELECTION()             => 'inet',      # rfc 3011
 
-    DHO_CLASSLESS_STATIC_ROUTE_MS()   => 'csr',
+    DHO_CLASSLESS_STATIC_ROUTE_MS()    => 'csr',
     DHO_PACKETCABLE_DEPRECATED()       => 'hexa',      # rfc 3495
 );
 
@@ -622,37 +621,37 @@ use constant \%VENDOR43_CODES;
 %REV_VENDOR43_FORMATS = reverse %VENDOR43_FORMATS;
 
 our %SUBOPTION_FORMATS = (
-    $DHO_CODES{'DHO_DHCP_AGENT_OPTIONS'}    => \%RELAYAGENT_FORMATS,
-    $DHO_CODES{'DHO_GEOCONF'}               => \%GEOCONF_FORMATS,
-    $DHO_CODES{'DHO_NWIP_SUBOPTIONS'}        => \%NWIP_FORMATS,
-    $DHO_CODES{'DHO_CCC'}                    => \%CCC_FORMATS,
-    $DHO_CODES{'DHO_VENDOR_ENCAPSULATED_OPTIONS'} => \%VENDOR43_FORMATS,
+    $DHO_CODES{'DHO_DHCP_AGENT_OPTIONS'}           => \%RELAYAGENT_FORMATS,
+    $DHO_CODES{'DHO_GEOCONF'}                      => \%GEOCONF_FORMATS,
+    $DHO_CODES{'DHO_NWIP_SUBOPTIONS'}              => \%NWIP_FORMATS,
+    $DHO_CODES{'DHO_CCC'}                          => \%CCC_FORMATS,
+    $DHO_CODES{'DHO_VENDOR_ENCAPSULATED_OPTIONS'}  => \%VENDOR43_FORMATS,
 );
 
 our %REV_SUBOPTION_FORMATS = (
-    $DHO_CODES{'DHO_DHCP_AGENT_OPTIONS'}    => \%REV_RELAYAGENT_FORMATS,
-    $DHO_CODES{'DHO_GEOCONF'}               => \%REV_GEOCONF_FORMATS,
-    $DHO_CODES{'DHO_NWIP_SUBOPTIONS'}        => \%REV_NWIP_FORMATS,
-    $DHO_CODES{'DHO_CCC'}                    => \%REV_CCC_FORMATS,
-    $DHO_CODES{'DHO_VENDOR_ENCAPSULATED_OPTIONS'} => \%REV_VENDOR43_FORMATS,
+    $DHO_CODES{'DHO_DHCP_AGENT_OPTIONS'}           => \%REV_RELAYAGENT_FORMATS,
+    $DHO_CODES{'DHO_GEOCONF'}                      => \%REV_GEOCONF_FORMATS,
+    $DHO_CODES{'DHO_NWIP_SUBOPTIONS'}              => \%REV_NWIP_FORMATS,
+    $DHO_CODES{'DHO_CCC'}                          => \%REV_CCC_FORMATS,
+    $DHO_CODES{'DHO_VENDOR_ENCAPSULATED_OPTIONS'}  => \%REV_VENDOR43_FORMATS,
 );
 
 # Links option codes with their suboption values
 %SUBOPTION_CODES = (
-    $DHO_CODES{'DHO_NWIP_SUBOPTIONS'}    => \%NWIP_CODES, # option 63
-    $DHO_CODES{'DHO_DHCP_AGENT_OPTIONS'} => \%RELAYAGENT_CODES, # option 82
-    $DHO_CODES{'DHO_CCC'}                => \%CCC_CODES,  # option 122
-    $DHO_CODES{'DHO_GEOCONF'}            => \%GEOCONF_CODES, # option 123
-    $DHO_CODES{'DHO_VENDOR_ENCAPSULATED_OPTIONS'} => \%VENDOR43_CODES, # option 43
+    $DHO_CODES{'DHO_NWIP_SUBOPTIONS'}              => \%NWIP_CODES,       # option 63
+    $DHO_CODES{'DHO_DHCP_AGENT_OPTIONS'}           => \%RELAYAGENT_CODES, # option 82
+    $DHO_CODES{'DHO_CCC'}                          => \%CCC_CODES,        # option 122
+    $DHO_CODES{'DHO_GEOCONF'}                      => \%GEOCONF_CODES,    # option 123
+    $DHO_CODES{'DHO_VENDOR_ENCAPSULATED_OPTIONS'}  => \%VENDOR43_CODES,   # option 43
 );
 
 # Links option codes with their reverse suboption values
 %REV_SUBOPTION_CODES = (
-    $DHO_CODES{'DHO_NWIP_SUBOPTIONS'}    => \%REV_NWIP_CODES, # option 63
-    $DHO_CODES{'DHO_DHCP_AGENT_OPTIONS'} => \%REV_RELAYAGENT_CODES, # option 82
-    $DHO_CODES{'DHO_CCC'}                => \%REV_CCC_CODES,  # option 122
-    $DHO_CODES{'DHO_GEOCONF'}            => \%REV_GEOCONF_CODES, # option 123
-    $DHO_CODES{'DHO_VENDOR_ENCAPSULATED_OPTIONS'} => \%REV_VENDOR43_CODES, # option 43
+    $DHO_CODES{'DHO_NWIP_SUBOPTIONS'}              => \%REV_NWIP_CODES,       # option 63
+    $DHO_CODES{'DHO_DHCP_AGENT_OPTIONS'}           => \%REV_RELAYAGENT_CODES, # option 82
+    $DHO_CODES{'DHO_CCC'}                          => \%REV_CCC_CODES,        # option 122
+    $DHO_CODES{'DHO_GEOCONF'}                      => \%REV_GEOCONF_CODES,    # option 123
+    $DHO_CODES{'DHO_VENDOR_ENCAPSULATED_OPTIONS'}  => \%REV_VENDOR43_CODES,   # option 43
 );
 
 1;
@@ -662,7 +661,7 @@ our %REV_SUBOPTION_FORMATS = (
 =head1 SYNOPSIS
 
     use Net::DHCP::Constants;
-    print "DHCP option SUBNET_MASK is ", DHO_SUBNET_MASK();
+    print 'DHCP option SUBNET_MASK is ', DHO_SUBNET_MASK();
 
 =head1 DESCRIPTION
 
@@ -931,29 +930,29 @@ Format types are shown in parentheses.
 Import all CableLabs DOCSIS suboption codes for option 43 (vendor
 encapsulated options). Format types are shown in parentheses.
 
-    (002) VENDOR43_DEVICE_TYPE       (byte)
-    (003) VENDOR43_ECM               (byte)
-    (004) VENDOR43_SERIAL_NUMBER     (string)
-    (005) VENDOR43_HW_VERSION        (string)
-    (006) VENDOR43_SW_VERSION        (string)
-    (007) VENDOR43_BOOT_ROM_VERSION  (string)
-    (008) VENDOR43_OUI               (hexa)
-    (009) VENDOR43_MODEL_NUMBER      (string)
-    (010) VENDOR43_VENDOR_NAME       (string)
-    (011) VENDOR43_PS_WAN_MAN_DATA   (hexa)
-    (012) VENDOR43_CM_PS_SYSTEM_DESC (string)
-    (013) VENDOR43_CM_PS_FIRMWARE_REV(string)
-    (014) VENDOR43_FIREWALL_POLICY_FILE(string)
-    (015) VENDOR43_ESAFES            (hexa)
-    (016) VENDOR43_DEVICE_TPID       (hexa)
-    (017) VENDOR43_DEVICE_SMID       (hexa)
-    (018) VENDOR43_VIDEOSECURITYELEMENT(hexa)
-    (031) VENDOR43_MTA_MAC_ADDRESS   (hexa)
-    (032) VENDOR43_MTA_CORRELATION_ID(string)
-    (051) VENDOR43_CARD_VENDOR_NAME  (string)
-    (052) VENDOR43_CARD_CAPABILITY   (hexa)
-    (053) VENDOR43_CARD_VENDOR_DEVICE_ID(hexa)
-    (054) VENDOR43_CARD_ID           (string)
+    (002) VENDOR43_DEVICE_TYPE              (byte)
+    (003) VENDOR43_ECM                      (byte)
+    (004) VENDOR43_SERIAL_NUMBER            (string)
+    (005) VENDOR43_HW_VERSION               (string)
+    (006) VENDOR43_SW_VERSION               (string)
+    (007) VENDOR43_BOOT_ROM_VERSION         (string)
+    (008) VENDOR43_OUI                      (hexa)
+    (009) VENDOR43_MODEL_NUMBER             (string)
+    (010) VENDOR43_VENDOR_NAME              (string)
+    (011) VENDOR43_PS_WAN_MAN_DATA          (hexa)
+    (012) VENDOR43_CM_PS_SYSTEM_DESC        (string)
+    (013) VENDOR43_CM_PS_FIRMWARE_REV       (string)
+    (014) VENDOR43_FIREWALL_POLICY_FILE     (string)
+    (015) VENDOR43_ESAFES                   (hexa)
+    (016) VENDOR43_DEVICE_TPID              (hexa)
+    (017) VENDOR43_DEVICE_SMID              (hexa)
+    (018) VENDOR43_VIDEOSECURITYELEMENT      (hexa)
+    (031) VENDOR43_MTA_MAC_ADDRESS          (hexa)
+    (032) VENDOR43_MTA_CORRELATION_ID       (string)
+    (051) VENDOR43_CARD_VENDOR_NAME         (string)
+    (052) VENDOR43_CARD_CAPABILITY          (hexa)
+    (053) VENDOR43_CARD_VENDOR_DEVICE_ID    (hexa)
+    (054) VENDOR43_CARD_ID                  (string)
 
 
 

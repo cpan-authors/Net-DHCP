@@ -28,6 +28,7 @@ use Ref::Util qw( is_plain_arrayref is_plain_hashref is_ref );
 my $UINT8_MASK = 255;
 my $OPTION_VALUE_SPLIT = qr/[\s\/,;]+/;
 my $CSR_MAX_ENTRY_SIZE = 9;
+my $EMPTY_STR = q{};
 
 #=======================================================================
 
@@ -78,10 +79,10 @@ sub new {
         yiaddr  => NULL_IP,
         siaddr  => NULL_IP,
         giaddr  => NULL_IP,
-        chaddr  => q||,
-        sname   => q||,
-        file    => q||,
-        padding => q||,
+        chaddr  => $EMPTY_STR,
+        sname   => $EMPTY_STR,
+        file    => $EMPTY_STR,
+        padding => $EMPTY_STR,
         isDhcp  => 1,
 
     };
@@ -150,7 +151,7 @@ sub multi_value_array_ref {
 
 sub is_list_format {
     my $format = shift;
-    return 1 if $format =~ /s$/ || $format eq 'csr' || $format eq 'userclass'
+    return 1 if $format =~ m/s$/ || $format eq 'csr' || $format eq 'userclass'
              || $format eq 'hexa' || $format eq 'inets2';
     return 0;
 }
@@ -179,7 +180,7 @@ sub _encode_option_value {
     if (is_plain_arrayref($value)) {
         @values = @$value;
     }
-    elsif ( defined $value && $value ne q|| ) {
+    elsif ( defined $value && $value ne $EMPTY_STR ) {
         @values = split( $OPTION_VALUE_SPLIT, $value );
     }
 
@@ -200,13 +201,13 @@ sub _encode_option_value {
 
     my %options = (
 
-        inet   => sub { return packinet(shift) },
-        inets  => sub { return packinets_array(@_) },
-        inets2 => sub { return packinets_array(@_) },
-        int    => sub { return pack( 'N', shift ) },
-        short  => sub { return pack( 'n', shift ) },
-        byte   => sub { return pack( 'C', $UINT8_MASK & shift ) },
-        bytes  => sub {
+        inet       => sub { return packinet(shift) },
+        inets      => sub { return packinets_array(@_) },
+        inets2     => sub { return packinets_array(@_) },
+        int        => sub { return pack( 'N', shift ) },
+        short      => sub { return pack( 'n', shift ) },
+        byte       => sub { return pack( 'C', $UINT8_MASK & shift ) },
+        bytes      => sub {
             return pack( 'C*', map { $UINT8_MASK & $_ } @_ );
         },
         string     => sub { return shift },
@@ -337,7 +338,7 @@ sub addSubOptionValue {
 
     # decompose input value into an array
     my @values;
-    if ( defined $value && $value ne q|| ) {
+    if ( defined $value && $value ne $EMPTY_STR ) {
         @values = split( $OPTION_VALUE_SPLIT, $value );
     }
 
@@ -362,19 +363,19 @@ sub addSubOptionValue {
     }
 
     my %options = (
-        inet   => sub { return packinet(shift) },
-        inets  => sub { return packinets_array(@_) },
-        inets2 => sub { return packinets_array(@_) },
-        int    => sub { return pack( 'N', shift ) },
-        short  => sub { return pack( 'n', shift ) },
-        byte   => sub { return pack( 'C', $UINT8_MASK & shift ) },
-        bytes => sub {
+        inet        => sub { return packinet(shift) },
+        inets       => sub { return packinets_array(@_) },
+        inets2      => sub { return packinets_array(@_) },
+        int         => sub { return pack( 'N', shift ) },
+        short       => sub { return pack( 'n', shift ) },
+        byte        => sub { return pack( 'C', $UINT8_MASK & shift ) },
+        bytes       => sub {
             return pack( 'C*', map { $UINT8_MASK & $_ } @_ );
         },
-        string => sub { return shift },
-        hexa => sub { return pack( 'H*', shift ) },
-        circuit_id => sub { return _pack_circuit_id(shift) },
-        remote_id  => sub { return _pack_remote_id(shift) },
+        string      => sub { return shift },
+        hexa        => sub { return pack( 'H*', shift ) },
+        circuit_id  => sub { return _pack_circuit_id(shift) },
+        remote_id   => sub { return _pack_remote_id(shift) },
     );
 
     #  } elsif ($format eq 'ids') {
@@ -414,21 +415,21 @@ sub getOptionValue {
     return unless defined $value_bin;
 
     # flatten accumulated chunks into a single value for decoding
-    $value_bin = join('', @$value_bin) if is_plain_arrayref($value_bin);
+    $value_bin = join($EMPTY_STR, @$value_bin) if is_plain_arrayref($value_bin);
 
     # my @values;
 
     # hash out these options for speed and sanity
     my %options = (
-        inet   => sub { return unpackinets_array(shift) },
-        inets  => sub { return unpackinets_array(shift) },
-        inets2 => sub { return unpackinets_array(shift) },
-        int    => sub { return unpack( 'N', shift ) },
-        short  => sub { return unpack( 'n', shift ) },
-        shorts => sub { return unpack( 'n*', shift ) },
-        byte   => sub { return unpack( 'C', shift ) },
-        bytes  => sub { return unpack( 'C*', shift ) },
-        string => sub { return shift },
+        inet       => sub { return unpackinets_array(shift) },
+        inets      => sub { return unpackinets_array(shift) },
+        inets2     => sub { return unpackinets_array(shift) },
+        int        => sub { return unpack( 'N', shift ) },
+        short      => sub { return unpack( 'n', shift ) },
+        shorts     => sub { return unpack( 'n*', shift ) },
+        byte       => sub { return unpack( 'C', shift ) },
+        bytes      => sub { return unpack( 'C*', shift ) },
+        string     => sub { return shift },
         clientid   => sub { return unpackclientid(shift) },
         userclass  => sub {
             my $val = unpackuserclass(shift);
@@ -474,14 +475,14 @@ sub getSubOptionRaw {
 sub _format_circuit_id {
     my $bin = shift;
     my $len = length($bin);
-    return '' unless $len;
+    return $EMPTY_STR unless $len;
     if ($len >= 6 && substr($bin, 0, 2) eq "\x00\x04") {
         my ($vlan, $module, $port) = unpack('x2 n C C', $bin);
         return sprintf('VLAN=%d Module=%d Port=%d', $vlan, $module, $port);
     }
     if (ord(substr($bin, 0, 1)) == 0x01) {
         my $str = substr($bin, 1);
-        return defined $str && length $str ? $str : '';
+        return defined $str && length $str ? $str : $EMPTY_STR;
     }
     return unpack('H*', $bin);
 }
@@ -489,20 +490,20 @@ sub _format_circuit_id {
 sub _format_remote_id {
     my $bin = shift;
     my $len = length($bin);
-    return '' unless $len;
+    return $EMPTY_STR unless $len;
     if ($len >= 8 && substr($bin, 0, 2) eq "\x00\x06") {
         return join(':', unpack('(H2)*', substr($bin, 2, 6)));
     }
     if (ord(substr($bin, 0, 1)) == 0x01) {
         my $str = substr($bin, 1);
-        return defined $str && length $str ? $str : '';
+        return defined $str && length $str ? $str : $EMPTY_STR;
     }
     return unpack('H*', $bin);
 }
 
 sub _pack_circuit_id {
     my $val = shift;
-    return '' unless defined $val && length $val;
+    return $EMPTY_STR unless defined $val && length $val;
     if ($val =~ m/^[0-9a-fA-F]+$/) {
         carp("_pack_circuit_id: odd-length hex string, trailing nibble dropped")
           if length($val) % 2;
@@ -516,9 +517,9 @@ sub _pack_circuit_id {
 
 sub _pack_remote_id {
     my $val = shift;
-    return '' unless defined $val && length $val;
+    return $EMPTY_STR unless defined $val && length $val;
     if ($val =~ m/^[0-9a-fA-F]{2}(?::[0-9a-fA-F]{2}){5}$/) {
-        my $bin = pack('H*', join('', split(':', $val)));
+        my $bin = pack('H*', join($EMPTY_STR, split(':', $val)));
         return pack('C C a6', 0x00, 0x06, $bin);
     }
     if ($val =~ m/^[0-9a-fA-F]+$/) {
@@ -530,18 +531,18 @@ sub _pack_remote_id {
 }
 
 my %unpack = (
-    inet   => sub { return unpackinets_array(shift) },
-    inets  => sub { return unpackinets_array(shift) },
-    inets2 => sub { return unpackinets_array(shift) },
-    int    => sub { return unpack('N',          shift) },
-    short  => sub { return unpack('n',          shift) },
-    shorts => sub { return unpack('n*',         shift) },
-    byte   => sub { return unpack('C',          shift) },
-    bytes  => sub { return unpack('C*',         shift) },
-    string => sub { return                     shift },
-    hexa   => sub { return unpack('H*',         shift) },
-    circuit_id => sub { return _format_circuit_id(shift) },
-    remote_id  => sub { return _format_remote_id(shift) },
+    inet        => sub { return unpackinets_array(shift) },
+    inets       => sub { return unpackinets_array(shift) },
+    inets2      => sub { return unpackinets_array(shift) },
+    int         => sub { return unpack('N',  shift) },
+    short       => sub { return unpack('n',  shift) },
+    shorts      => sub { return unpack('n*', shift) },
+    byte        => sub { return unpack('C',  shift) },
+    bytes       => sub { return unpack('C*', shift) },
+    string      => sub { return               shift },
+    hexa        => sub { return unpack('H*', shift) },
+    circuit_id  => sub { return _format_circuit_id(shift) },
+    remote_id   => sub { return _format_remote_id(shift) },
 );
 
 sub getSubOptionValue {
@@ -626,7 +627,7 @@ sub serialize {
             }
             elsif ( is_plain_hashref($self->{options}->{$key}) ) {
                 my @chunks;
-                my $current = q{};
+                my $current = $EMPTY_STR;
                 for my $subkey ( @{ $self->{sub_options_order}->{$key} } ) {
                     my $entry = pack( 'C',    $subkey )
                               . pack( 'C/a*', $self->{options}->{$key}->{$subkey} );
@@ -638,7 +639,7 @@ sub serialize {
                     }
                     if (byte_len($current) + byte_len($entry) > MAX_OPTION_DATA_LEN) {
                         push @chunks, $current if byte_len($current);
-                        $current = q{};
+                        $current = $EMPTY_STR;
                     }
                     $current .= $entry;
                 }
@@ -783,7 +784,7 @@ sub marshall {
             $self->{padding} = substr( $opt_buf, $pos );
         }
         else {
-            $self->{padding} = q||;
+            $self->{padding} = $EMPTY_STR;
         }
 
         # handle option 52 (DHO_DHCP_OPTION_OVERLOAD)
@@ -793,11 +794,11 @@ sub marshall {
             # RFC 2132 §9.3: bit 0 (1)=file, bit 1 (2)=sname
             if ($ov & 2) {
                 $self->_parse_option_buffer(substr($buf, 44, 64));
-                $self->{sname} = '';
+                $self->{sname} = $EMPTY_STR;
             }
             if ($ov & 1) {
                 $self->_parse_option_buffer(substr($buf, 108, 128));
-                $self->{file} = '';
+                $self->{file} = $EMPTY_STR;
             }
             # remove option 52 — overloaded options now in main hash
             delete $self->{options}->{DHO_DHCP_OPTION_OVERLOAD()};
@@ -865,7 +866,7 @@ sub toString {
                 eval { $subvalue = join(q| |, $self->getSubOptionValue($key, $subkey)) };
                 if ($@) {
                     my $raw = $self->getSubOptionRaw($key, $subkey);
-                    $subvalue = defined $raw ? unpack('H*', $raw) : '';
+                    $subvalue = defined $raw ? unpack('H*', $raw) : $EMPTY_STR;
                 }
                 else {
                     my $format = $SUBOPTION_FORMATS{$key}->{$subkey};
@@ -879,7 +880,7 @@ sub toString {
                 $subvalue = _printable($subvalue);
                 $s .= sprintf("   %s(%d) = %s\n",
                     exists $SUBOPTION_CODES{$key} && exists $REV_SUBOPTION_CODES{$key}{$subkey}
-                      ? $REV_SUBOPTION_CODES{$key}{$subkey} : '',
+                      ? $REV_SUBOPTION_CODES{$key}{$subkey} : $EMPTY_STR,
                     $key, $subvalue);
             }
             $value = 'see above';
@@ -893,11 +894,11 @@ sub toString {
                 }
                 $value = _printable($value);
             }
-            $value = '' unless defined $value;
+            $value = $EMPTY_STR unless defined $value;
         }
 
         $s .= sprintf(" %s(%d) = %s\n",
-            exists $REV_DHO_CODES{$key} ? $REV_DHO_CODES{$key} : '',
+            exists $REV_DHO_CODES{$key} ? $REV_DHO_CODES{$key} : $EMPTY_STR,
             $key, $value);
     }
     $s .= sprintf(
@@ -972,7 +973,7 @@ sub packsuboptions {
     my @relay_opt = @_
       or return;
 
-    my $buf = '';
+    my $buf = $EMPTY_STR;
     for my $opt (@relay_opt) {
         $buf .= pack( 'C', $opt->[0])
              . pack( 'C', length($opt->[1]))
@@ -1116,7 +1117,7 @@ sub unpacksipserv {
 }
 
 sub packuserclass {
-    my $buf = '';
+    my $buf = $EMPTY_STR;
     for my $val (@_) {
         next unless defined $val && length $val;
         $buf .= pack('C/a*', $val);
@@ -1146,7 +1147,7 @@ sub unpackuserclass {
 
 sub packcsr {
     my $routes = shift;
-    return [''] unless defined $routes;
+    return [$EMPTY_STR] unless defined $routes;
 
     if (!is_plain_arrayref($routes)) {
         my @tokens = split ' ', $routes;
@@ -1156,10 +1157,10 @@ sub packcsr {
         }
     }
 
-    my $results = [ '' ];
+    my $results = [ $EMPTY_STR ];
 
     for my $pair ( @$routes ) {
-        push @$results, ''
+        push @$results, $EMPTY_STR
             if (length($results->[-1]) > MAX_OPTION_DATA_LEN - $CSR_MAX_ENTRY_SIZE);
 
         my ($ip, $mask) = split /\//, $pair->[0];
@@ -1276,7 +1277,7 @@ is issued.
     use IO::Socket::INET;
     use Net::DHCP::Packet;
 
-    $sock = IO::Socket::INET->new(LocalPort => 67, Proto => "udp", Broadcast => 1)
+    $sock = IO::Socket::INET->new(LocalPort => 67, Proto => 'udp', Broadcast => 1)
             or die "socket: $@";
 
     while ($sock->recv($newmsg, 1024)) {
@@ -1367,7 +1368,7 @@ If you need access to the raw binary values, please use C<setOptionRaw()>.
 
     $pac = Net::DHCP::Packet->new();
     $pac->setOptionValue(DHO_DHCP_MESSAGE_TYPE(), DHCPINFORM());
-    $pac->setOptionValue(DHO_NAME_SERVERS(), "192.0.2.1", "192.0.2.2");
+    $pac->setOptionValue(DHO_NAME_SERVERS(), '192.0.2.1', '192.0.2.2');
 
 =item pushOptionValue( CODE, VALUE )
 
@@ -1384,8 +1385,8 @@ Use C<setOptionValue> when you want to overwrite; use
 C<pushOptionValue> when you want to accumulate.
 
     $pac = Net::DHCP::Packet->new();
-    $pac->pushOptionValue(DHO_NAME_SERVERS(), "192.0.2.1");
-    $pac->pushOptionValue(DHO_NAME_SERVERS(), "192.0.2.2");
+    $pac->pushOptionValue(DHO_NAME_SERVERS(), '192.0.2.1');
+    $pac->pushOptionValue(DHO_NAME_SERVERS(), '192.0.2.2');
 
 =item B<DEPRECATED> addOptionValue( CODE, VALUE )
 
@@ -1407,12 +1408,12 @@ If you need access to the raw binary values, please use C<addSubOptionRaw()>.
     $pac->addSubOptionValue(
         DHO_DHCP_AGENT_OPTIONS(),
         RAI_CIRCUIT_ID(),
-        "my-circuit-id"
+        'my-circuit-id'
     );
     $pac->addSubOptionValue(
         DHO_DHCP_AGENT_OPTIONS(),
         RAI_REMOTE_ID(),
-        "my-remote-id"
+        'my-remote-id'
     );
 
 =item getOptionValue( CODE )
@@ -1488,8 +1489,10 @@ For flexible MAC address input from many formats, use L<NetAddr::MAC>:
 
   use NetAddr::MAC;
   my $mac = NetAddr::MAC->new('00:11:22:aa:bb:cc');
-  $p->setOptionRaw(DHO_DHCP_CLIENT_IDENTIFIER(),
-      pack('C H*', 1, $mac->as_basic));
+  $p->setOptionRaw(
+      DHO_DHCP_CLIENT_IDENTIFIER(),
+      pack('C H*', 1, $mac->as_basic)
+  );
 
 See L<https://tools.ietf.org/html/rfc2132#section-9.14>
 
@@ -1613,11 +1616,11 @@ Option codes for 'string' format:
 
 Example:
 
-    $pac->setOptionValue(DHO_TFTP_SERVER(), "foobar");
+    $pac->setOptionValue(DHO_TFTP_SERVER(), 'foobar');
 
 =item single ip address
 
-Exactly one IP address, in dotted numerical format '192.168.1.1'.
+Exactly one IP address, in dotted numerical format i.e. '192.0.2.1'.
 
 Option codes for 'single ip address' format:
 
@@ -1631,11 +1634,11 @@ Option codes for 'single ip address' format:
 
 Example:
 
-    $pac->setOptionValue(DHO_SUBNET_MASK(), "255.255.255.0");
+    $pac->setOptionValue(DHO_SUBNET_MASK(), '255.255.255.0');
 
 =item multiple ip addresses
 
-Any number of IP address, in dotted numerical format '192.168.1.1'.
+Any number of IP address, in dotted numerical format i.e. '192.0.2.1'.
 Empty value allowed.
 
 Option codes for 'multiple ip addresses' format:
@@ -1668,11 +1671,11 @@ Option codes for 'multiple ip addresses' format:
 
 Example:
 
-    $pac->setOptionValue(DHO_NAME_SERVERS(), "192.0.2.11 198.51.100.10");
+    $pac->setOptionValue(DHO_NAME_SERVERS(), '192.0.2.11 198.51.100.10');
 
 =item pairs of ip addresses
 
-Even number of IP address, in dotted numerical format '192.168.1.1'.
+Even number of IP address, in dotted numerical format i.e. '192.0.2.1'.
 Empty value allowed.
 
 Option codes for 'pairs of ip address' format:
@@ -1682,7 +1685,7 @@ Option codes for 'pairs of ip address' format:
 
 Example:
 
-    $pac->setOptionValue(DHO_STATIC_ROUTES(), "192.0.2.1 198.51.100.254");
+    $pac->setOptionValue(DHO_STATIC_ROUTES(), '192.0.2.1 198.51.100.254');
 
 =item byte, short and integer
 
@@ -1744,7 +1747,7 @@ Option codes for 'multiple shorts (16)' format:
 
 Examples:
 
-    $pac->setOptionValue(DHO_DHCP_PARAMETER_REQUEST_LIST(),  "1 3 6 12 15 28 42 72");
+    $pac->setOptionValue(DHO_DHCP_PARAMETER_REQUEST_LIST(),  '1 3 6 12 15 28 42 72');
 
 =back
 
@@ -1794,14 +1797,14 @@ Unpacks sub-options to a list of lists
 
 =item min_len_handling( LEVEL )
 
-By default, the level is set to 0. If the packet is shorter than the
+By default, the level is set to C<0>. If the packet is shorter than the
 minimum C<BOOTP_MIN_LEN>, a warning is issued; if it is shorter than
 the absolute minimum C<BOOTP_ABSOLUTE_MIN_LEN>, an exception is
 thrown.
 
-If the level is set to 1, even the absolute minimum just warns.
+If the level is set to C<1>, even the absolute minimum just warns.
 
-Setting the level to 2 means the packet length checks are skipped
+Setting the level to C<2> means the packet length checks are skipped
 altogether.
 
 Without a parameter, the method returns the current level.
@@ -1922,8 +1925,8 @@ Sending a LEASEQUERY (provided by John A. Murphy).
   $packet = Net::DHCP::Packet->new($newmsg);
   print $packet->toString();
 
-A simple DHCP Server is provided in the "examples" directory. It is composed of
-"dhcpd.pl" a *very* simple server example, and "dhcpd_test.pl" a simple tester for
+A simple DHCP Server is provided in the I<examples> directory. It is composed of
+I<dhcpd.pl> a I<very> simple server example, and I<dhcpd_test.pl> a simple tester for
 this server.
 
 =head1 SEE ALSO
