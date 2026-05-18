@@ -125,7 +125,7 @@ sub new {
 
     # process DHCP options in original order (matters for picky clients)
     for my $pair (@opt_pairs) {
-        $self->addOptionValue($pair->[0], $pair->[1]);
+        $self->setOptionValue($pair->[0], $pair->[1]);
     }
 
     # fall back to global if not set by constructor arg
@@ -148,7 +148,14 @@ sub multi_value_array_ref {
     return exists $self->{multi_value_array_ref} ? $self->{multi_value_array_ref} : 0;
 }
 
-sub addOptionRaw {
+sub is_list_format {
+    my $format = shift;
+    return 1 if $format =~ /s$/ || $format eq 'csr' || $format eq 'userclass'
+             || $format eq 'hexa' || $format eq 'inets2';
+    return 0;
+}
+
+sub setOptionRaw {
     my ( $self, $key, $value_bin ) = @_;
     $self->{options}->{$key} = $value_bin;
     if ( none { $_ == $key } @{ $self->{options_order} } ) {
@@ -158,24 +165,16 @@ sub addOptionRaw {
     return 1
 }
 
-sub addOptionValue {
-    my $self  = shift;
-    my $code  = shift;    # option code
-    my $value = shift;
+sub addOptionRaw {
+    carp "addOptionRaw is deprecated, use setOptionRaw instead";
+    goto &setOptionRaw;
+}
 
-    # my $value_bin;      # option value in binary format
-
-    carp("addOptionValue: unknown format for code ($code)")
-      unless exists $DHO_FORMATS{$code};
+sub _encode_option_value {
+    my ( $self, $code, $value ) = @_;
 
     my $format = $DHO_FORMATS{$code};
 
-    if ( $format eq 'suboption' ) {
-        carp 'Use addSubOptionValue to add sub options';
-        return;
-    }
-
-    # decompose input value into an array
     my @values;
     if (is_plain_arrayref($value)) {
         @values = @$value;
@@ -184,21 +183,18 @@ sub addOptionValue {
         @values = split( $OPTION_VALUE_SPLIT, $value );
     }
 
-    # verify number of parameters
     if ( $format eq 'string' || $format eq 'csr' ) {
-        @values = ($value);      # don't change format
+        @values = ($value);
     }
-
-    elsif ( $format =~ m/s$/ ) { # ends with an 's', meaning any number of parameters
+    elsif ( $format =~ m/s$/ ) {
         ;
     }
-    elsif ( $format =~ m/2$/ ) { # ends with a '2', meaning couples of parameters
-        croak(
-            "addOptionValue: only pairs of values expected for option '$code'")
+    elsif ( $format =~ m/2$/ ) {
+        croak("only pairs of values expected for option '$code'")
           if ( ( @values % 2 ) != 0 );
     }
-    else {                      # only one parameter
-        croak("addOptionValue: exactly one value expected for option '$code'")
+    else {
+        croak("exactly one value expected for option '$code'")
           if ( @values != 1 );
     }
 
@@ -223,15 +219,24 @@ sub addOptionValue {
 
     );
 
-    #  } elsif ($format eq 'ids') {
-    #    $value_bin = $values[0];
-    #    # TBM bad format
-
-    # decode the option if we know how, otherwise use the original value
     my $encoded = $options{$format} ? $options{$format}->(@values) : $value;
 
-    # csr can return multiple chunks; store as arrayref so serialize emits
-    # one option instance per chunk instead of silently dropping chunks
+    return $encoded;
+}
+
+sub setOptionValue {
+    my ( $self, $code, $value ) = @_;
+
+    carp("setOptionValue: unknown format for code ($code)")
+      unless exists $DHO_FORMATS{$code};
+
+    if ( $DHO_FORMATS{$code} eq 'suboptions' ) {
+        carp 'Use addSubOptionValue to add sub options';
+        return;
+    }
+
+    my $encoded = $self->_encode_option_value($code, $value);
+
     if (is_plain_arrayref($encoded) && @$encoded > 1) {
         $self->{options}->{$code} = $encoded;
         if ( none { $_ == $code } @{ $self->{options_order} } ) {
@@ -239,10 +244,56 @@ sub addOptionValue {
         }
     }
     else {
-        $self->addOptionRaw($code, $encoded);
+        $self->setOptionRaw($code, $encoded);
+    }
+}
+
+sub addOptionValue {
+    carp "addOptionValue is deprecated, use setOptionValue instead";
+    goto &setOptionValue;
+}
+
+sub pushOptionValue {
+    my ( $self, $code, $value ) = @_;
+
+    carp("pushOptionValue: unknown format for code ($code)")
+      unless exists $DHO_FORMATS{$code};
+
+    my $format = $DHO_FORMATS{$code};
+
+    if ( $format eq 'suboptions' ) {
+        carp 'Use addSubOptionValue to add sub options';
+        return;
     }
 
-}    # end AddOptionValue
+    if ( !is_list_format($format) ) {
+        croak(
+            "pushOptionValue: option '$code' uses format '$format' "
+          . "which does not accept multiple values"
+        );
+    }
+
+    my $encoded = $self->_encode_option_value($code, $value);
+
+    my @chunks = is_plain_arrayref($encoded) ? @$encoded : ($encoded);
+
+    for my $chunk (@chunks) {
+        if ( !exists $self->{options}->{$code} ) {
+            $self->{options}->{$code} = $chunk;
+        }
+        elsif ( is_plain_arrayref( $self->{options}->{$code} ) ) {
+            push @{ $self->{options}->{$code} }, $chunk;
+        }
+        else {
+            $self->{options}->{$code}
+              = [ $self->{options}->{$code}, $chunk ];
+        }
+    }
+
+    if ( none { $_ == $code } @{ $self->{options_order} } ) {
+        push @{ $self->{options_order} }, $code;
+    }
+}
 
 sub addSubOptionRaw {
     my ( $self, $key, $subkey, $value_bin ) = @_;
@@ -1302,21 +1353,43 @@ and for unsupported types manipulation.
 
 =over 4
 
-=item addOptionValue( CODE, VALUE )
+=item setOptionValue( CODE, VALUE )
 
-Adds a DHCP option field. Common code values are listed in
-C<Net::DHCP::Constants> C<DHO_>*.
+Sets a DHCP option field (overwrites any existing value for the same code).
+Common code values are listed in C<Net::DHCP::Constants> C<DHO_>*.
 
 Values are automatically converted according to their data types,
 depending on their format as defined by RFC 2132.
 Please see L<DHCP OPTIONS TYPES> for supported options and corresponding
 formats.
 
-If you need access to the raw binary values, please use C<addOptionRaw()>.
+If you need access to the raw binary values, please use C<setOptionRaw()>.
 
     $pac = Net::DHCP::Packet->new();
-    $pac->addOption(DHO_DHCP_MESSAGE_TYPE(), DHCPINFORM());
-    $pac->addOption(DHO_NAME_SERVERS(), "10.0.0.1", "10.0.0.2"));
+    $pac->setOptionValue(DHO_DHCP_MESSAGE_TYPE(), DHCPINFORM());
+    $pac->setOptionValue(DHO_NAME_SERVERS(), "192.0.2.1", "192.0.2.2");
+
+=item pushOptionValue( CODE, VALUE )
+
+Appends a value to a multi-value DHCP option. If the option already
+exists, the value is added to the accumulated list; if the option
+has not been set yet, it is stored as a single value.
+
+Only multi-value option formats are accepted (inets, inets2, bytes, shorts,
+csr, userclass, suboptions, hexa). Calling C<pushOptionValue>
+on a scalar-only format (byte, short, int, inet, string, clientid,
+sipserv) will croak with an error.
+
+Use C<setOptionValue> when you want to overwrite; use
+C<pushOptionValue> when you want to accumulate.
+
+    $pac = Net::DHCP::Packet->new();
+    $pac->pushOptionValue(DHO_NAME_SERVERS(), "192.0.2.1");
+    $pac->pushOptionValue(DHO_NAME_SERVERS(), "192.0.2.2");
+
+=item B<DEPRECATED> addOptionValue( CODE, VALUE )
+
+I<Deprecated. Please use C<setOptionValue()> instead.>
 
 =item addSubOptionValue( CODE, SUBCODE, VALUE )
 
@@ -1358,10 +1431,15 @@ Return value is either a string or an array, depending on the context.
     $ip  = $pac->getOptionValue(DHO_SUBNET_MASK());
     $ips = $pac->getOptionValue(DHO_NAME_SERVERS());
 
-=item addOptionRaw( CODE, VALUE )
+=item setOptionRaw( CODE, VALUE )
 
-Adds a DHCP OPTION provided in packed binary format.
-Please see corresponding RFC for manual type conversion.
+Sets a DHCP OPTION in packed binary format (overwrites any existing
+value for the same code). Please see corresponding RFC for manual
+type conversion.
+
+=item B<DEPRECATED> addOptionRaw( CODE, VALUE )
+
+I<Deprecated. Please use C<setOptionRaw()> instead.>
 
 =item addSubOptionRaw( CODE, SUBCODE, VALUE )
 
@@ -1404,13 +1482,13 @@ To override auto-detection, pass a second argument:
 
 Warning: if a value is both valid hex and meaningful text (e.g. a
 hostname that happens to be even-length hex), the heuristic picks type 1.
-Use C<addOptionRaw> or the C<$force_type> parameter to be explicit.
+Use C<setOptionRaw> or the C<$force_type> parameter to be explicit.
 
 For flexible MAC address input from many formats, use L<NetAddr::MAC>:
 
   use NetAddr::MAC;
   my $mac = NetAddr::MAC->new('00:11:22:aa:bb:cc');
-  $p->addOptionRaw(DHO_DHCP_CLIENT_IDENTIFIER(),
+  $p->setOptionRaw(DHO_DHCP_CLIENT_IDENTIFIER(),
       pack('C H*', 1, $mac->as_basic));
 
 See L<https://tools.ietf.org/html/rfc2132#section-9.14>
@@ -1481,7 +1559,7 @@ each C<[len][data]> block and joins them with C<', '>.
 
 =item I<addOption( CODE, VALUE )>
 
-I<Removed as of version 0.60. Please use C<addOptionRaw()> instead.>
+I<Removed as of version 0.60. Please use C<setOptionRaw()> instead.>
 
 =item I<getOption( CODE )>
 
@@ -1494,7 +1572,7 @@ I<Removed as of version 0.60. Please use C<getOptionRaw()> instead.>
 This section describes supported option types (cf. RFC 2132).
 
 For unsupported data types, please use C<getOptionRaw()> and
-C<addOptionRaw> to manipulate binary format directly.
+C<setOptionRaw> to manipulate binary format directly.
 
 =over 4
 
@@ -1509,7 +1587,7 @@ Option code for 'dhcp message' format:
 
 Example:
 
-    $pac->addOptionValue(DHO_DHCP_MESSAGE_TYPE(), DHCPINFORM());
+    $pac->setOptionValue(DHO_DHCP_MESSAGE_TYPE(), DHCPINFORM());
 
 =item string
 
@@ -1535,7 +1613,7 @@ Option codes for 'string' format:
 
 Example:
 
-    $pac->addOptionValue(DHO_TFTP_SERVER(), "foobar");
+    $pac->setOptionValue(DHO_TFTP_SERVER(), "foobar");
 
 =item single ip address
 
@@ -1553,7 +1631,7 @@ Option codes for 'single ip address' format:
 
 Example:
 
-    $pac->addOptionValue(DHO_SUBNET_MASK(), "255.255.255.0");
+    $pac->setOptionValue(DHO_SUBNET_MASK(), "255.255.255.0");
 
 =item multiple ip addresses
 
@@ -1590,7 +1668,7 @@ Option codes for 'multiple ip addresses' format:
 
 Example:
 
-    $pac->addOptionValue(DHO_NAME_SERVERS(), "10.0.0.11 192.168.1.10");
+    $pac->setOptionValue(DHO_NAME_SERVERS(), "192.0.2.11 198.51.100.10");
 
 =item pairs of ip addresses
 
@@ -1604,7 +1682,7 @@ Option codes for 'pairs of ip address' format:
 
 Example:
 
-    $pac->addOptionValue(DHO_STATIC_ROUTES(), "10.0.0.1 192.168.1.254");
+    $pac->setOptionValue(DHO_STATIC_ROUTES(), "192.0.2.1 198.51.100.254");
 
 =item byte, short and integer
 
@@ -1647,9 +1725,9 @@ Option codes for 'integer (32)' format:
 
 Examples:
 
-    $pac->addOptionValue(DHO_DHCP_OPTION_OVERLOAD(), 3);
-    $pac->addOptionValue(DHO_INTERFACE_MTU(), 1500);
-    $pac->addOptionValue(DHO_DHCP_RENEWAL_TIME(), 24*60*60);
+    $pac->setOptionValue(DHO_DHCP_OPTION_OVERLOAD(), 3);
+    $pac->setOptionValue(DHO_INTERFACE_MTU(), 1500);
+    $pac->setOptionValue(DHO_DHCP_RENEWAL_TIME(), 24*60*60);
 
 =item multiple bytes, shorts
 
@@ -1666,7 +1744,7 @@ Option codes for 'multiple shorts (16)' format:
 
 Examples:
 
-    $pac->addOptionValue(DHO_DHCP_PARAMETER_REQUEST_LIST(),  "1 3 6 12 15 28 42 72");
+    $pac->setOptionValue(DHO_DHCP_PARAMETER_REQUEST_LIST(),  "1 3 6 12 15 28 42 72");
 
 =back
 

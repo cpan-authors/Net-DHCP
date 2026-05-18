@@ -10,8 +10,8 @@ subtest 'default legacy mode returns comma-joined strings' => sub {
     plan tests => 3;
 
     my $p = Net::DHCP::Packet->new;
-    $p->addOptionValue(DHO_ROUTERS(), '192.0.2.1, 192.0.2.2');
-    $p->addOptionValue(DHO_USER_CLASS(), 'ipxe, BIOS');
+    $p->setOptionValue(DHO_ROUTERS(), '192.0.2.1, 192.0.2.2');
+    $p->setOptionValue(DHO_USER_CLASS(), 'ipxe, BIOS');
 
     my $routers = $p->getOptionValue(DHO_ROUTERS());
     is(ref $routers, '', 'routers is a plain string');
@@ -26,8 +26,8 @@ subtest 'global multi_value_array_ref returns arrayrefs' => sub {
 
     local $Net::DHCP::multi_value_array_ref = 1;
     my $p = Net::DHCP::Packet->new;
-    $p->addOptionValue(DHO_ROUTERS(), '192.0.2.1, 192.0.2.2');
-    $p->addOptionValue(DHO_DHCP_PARAMETER_REQUEST_LIST(), '1, 2, 3');
+    $p->setOptionValue(DHO_ROUTERS(), '192.0.2.1, 192.0.2.2');
+    $p->setOptionValue(DHO_DHCP_PARAMETER_REQUEST_LIST(), '1, 2, 3');
 
     my $routers = $p->getOptionValue(DHO_ROUTERS());
     is(ref $routers, 'ARRAY', 'routers is an arrayref');
@@ -43,14 +43,14 @@ subtest 'constructor arg overrides global' => sub {
 
     local $Net::DHCP::multi_value_array_ref = 0;
     my $p = Net::DHCP::Packet->new(multi_value_array_ref => 1);
-    $p->addOptionValue(DHO_ROUTERS(), '192.0.2.1, 192.0.2.2');
+    $p->setOptionValue(DHO_ROUTERS(), '192.0.2.1, 192.0.2.2');
 
     my $routers = $p->getOptionValue(DHO_ROUTERS());
     is(ref $routers, 'ARRAY', 'constructor arg produces arrayref despite global=0');
 
     # Another object without the arg should use global
     my $p2 = Net::DHCP::Packet->new;
-    $p2->addOptionValue(DHO_ROUTERS(), '192.0.2.1');
+    $p2->setOptionValue(DHO_ROUTERS(), '192.0.2.1');
     my $r2 = $p2->getOptionValue(DHO_ROUTERS());
     is(ref $r2, '', 'second object without arg returns string');
 };
@@ -59,7 +59,7 @@ subtest 'per-object method after construction' => sub {
     plan tests => 3;
 
     my $p = Net::DHCP::Packet->new;
-    $p->addOptionValue(DHO_ROUTERS(), '192.0.2.1, 192.0.2.2');
+    $p->setOptionValue(DHO_ROUTERS(), '192.0.2.1, 192.0.2.2');
 
     $p->multi_value_array_ref(1);
     my $routers = $p->getOptionValue(DHO_ROUTERS());
@@ -85,7 +85,7 @@ subtest 'userclass round-trip with arrayref' => sub {
 
     local $Net::DHCP::multi_value_array_ref = 1;
     my $p = Net::DHCP::Packet->new;
-    $p->addOptionValue(DHO_USER_CLASS(), 'ipxe, BIOS');
+    $p->setOptionValue(DHO_USER_CLASS(), 'ipxe, BIOS');
 
     my $wire = $p->serialize;
     my $p2   = Net::DHCP::Packet->new($wire);
@@ -101,7 +101,7 @@ subtest 'csr round-trip with arrayref' => sub {
 
     local $Net::DHCP::multi_value_array_ref = 1;
     my $p = Net::DHCP::Packet->new;
-    $p->addOptionValue(DHO_CLASSLESS_STATIC_ROUTE(), "192.0.2.0/8 192.0.2.1, 198.51.100.0/16 198.51.100.1");
+    $p->setOptionValue(DHO_CLASSLESS_STATIC_ROUTE(), "192.0.2.0/8 192.0.2.1, 198.51.100.0/16 198.51.100.1");
 
     my $routes = $p->getOptionValue(DHO_CLASSLESS_STATIC_ROUTE());
     is(ref $routes, 'ARRAY', 'CSR is arrayref');
@@ -114,7 +114,7 @@ subtest 'inets2 (pairs) with arrayref' => sub {
     local $Net::DHCP::multi_value_array_ref = 1;
     my $p = Net::DHCP::Packet->new;
     # DHO_STATIC_ROUTES is inets2 (pairs of IPs)
-    $p->addOptionValue(DHO_STATIC_ROUTES(), '192.0.2.1 203.0.113.1, 192.0.2.2 203.0.113.2');
+    $p->setOptionValue(DHO_STATIC_ROUTES(), '192.0.2.1 203.0.113.1, 192.0.2.2 203.0.113.2');
 
     my $routes = $p->getOptionValue(DHO_STATIC_ROUTES());
     is(ref $routes, 'ARRAY', 'inets2 is arrayref');
@@ -126,8 +126,8 @@ subtest 'arrayref mode does not affect input side' => sub {
 
     local $Net::DHCP::multi_value_array_ref = 1;
     my $p = Net::DHCP::Packet->new;
-    # addOptionValue with string input still works the same
-    $p->addOptionValue(DHO_ROUTERS(), '192.0.2.1, 192.0.2.2, 192.0.2.3');
+    # setOptionValue with string input still works the same
+    $p->setOptionValue(DHO_ROUTERS(), '192.0.2.1, 192.0.2.2, 192.0.2.3');
 
     my $raw = $p->getOptionRaw(DHO_ROUTERS());
     # Should be 3 packed IPs = 12 bytes

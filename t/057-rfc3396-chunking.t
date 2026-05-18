@@ -214,7 +214,7 @@ subtest 'round-trip: long scalar option data is chunked and re-concatenated' => 
         isDhcp  => 1,
         padding => '',
     );
-    $p->addOptionRaw(43, $long_data);
+    $p->setOptionRaw(43, $long_data);
 
     my $serialized = $p->serialize();
 
