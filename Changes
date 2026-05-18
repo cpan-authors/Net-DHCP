@@ -1,5 +1,41 @@
 Net::DHCP - A DHCP packet object
 
+0.9      2026-05-18
+	- Standardise POD formatting across all modules
+	- Implement round-trip pack/unpack for clientid, sipserv, csr
+	- Extract magic numbers into named constants across all modules
+	- Add PCAP-based tests with README documentation for relay DORA, LEASEQUERY
+	- Fix gaps in PCAP-based tests: add op/secs checks, missing options, correct names
+	- Add PCAP-based test for DHCPINFORM, RELEASE, and User-Class (77)
+	- Implement option 52 overload handling (RFC 2132 §9.3) and fix suboption bugs
+	- Extract _nonempty helper for defined+length guards
+	- Add structured option 82 suboption formatting with Cisco Circuit ID/Remote ID decoding
+	- Add DHO_PACKETCABLE_DEPRECATED format entry (hexa)
+	- Add DHO_GEOCONF format entry and suboption formats (int/byte)
+	- Add DHO_NWIP_SUBOPTIONS format entries (byte/inet) for option 63
+	- Add DHO_CCC format entries (inet/string/byte/int/hexa) for option 122
+	- Fix packsuboptions double-packing and redundant outer length
+	- Add DHO_USER_CLASS (77) support with userclass format type per RFC 3004
+	- Add DHO_VENDOR_ENCAPSULATED_OPTIONS (43) suboption support with CableLabs DOCSIS codes
+	- Fix CSR default route test: restore missing prefix assertion
+	- Document packsuboptions canonical TLV wire format in POD
+	- Use Ref::Util instead of bare ref for type checks
+	- Tweak imports, standardise shebangs, clean up test pragma ordering
+	- Remove Travis CI config (service defunct), TODO file, and PLAN from tracking
+	- RFC 3396: chunk options >255 bytes on serialize, concatenate duplicates on parse
+	- Add $Net::DHCP::multi_value_array_ref for arrayref option values
+	- Bump minimum Perl to 5.10.0
+	- Rename addOption* / addOptionValue to setOption*/setOptionValue;
+	  add pushOptionValue with accumulation and backward-compat deprecation aliases
+	- Add hexa format support to top-level setOptionValue/getOptionValue dispatch
+	- Fix suboption vs suboptions string mismatch in setOptionValue/pushOptionValue
+	- Add inets2 to is_list_format for pushOptionValue compatibility
+	- Fix packsipserv force_type ip to use packinets() instead of raw string
+	- Fix serialize suboption chunking: guard empty chunk push, croak on oversized entry
+	- Clear sub_options_order in marshall() to prevent stale state
+	- Add odd-length hex warning in _pack_circuit_id/_pack_remote_id
+	- Update POD for renamed methods with deprecation notices; use RFC 5737 addresses
+
 0.8      2026-05-15
 	- Refactor constructor: single-pass split, m/[0-9]/, condensed carp
 	- Use eq instead of == in removeOption for safer key comparison
