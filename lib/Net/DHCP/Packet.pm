@@ -1821,6 +1821,13 @@ construction time and is independent of the global thereafter.
 
 Default is disabled (legacy comma-joined string behavior).
 
+=item is_list_format( FORMAT )
+
+Returns true if the format type supports multiple values (list/accumulation
+semantics). List-capable formats are those ending in C<s> (inets, strings,
+bytes, shorts) plus C<csr>, C<userclass>, C<hexa>, and C<inets2>.
+Used internally by pushOptionValue and setOptionValue.
+
 =back
 
 See also L<Net::DHCP::Packet::IPv4Utils>
