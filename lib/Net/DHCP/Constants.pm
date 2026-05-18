@@ -973,19 +973,19 @@ The following formats are supported:
 
 Encodes/decodes option 77 (C<DHO_USER_CLASS>) per RFC 3004.
 Each C<[len][data]> block represents one user class identifier.
-C<addOptionValue> accepts either a scalar (single class) or
+C<setOptionValue> accepts either a scalar (single class) or
 an arrayref (multiple classes):
 
-    $packet->addOptionValue(77, 'ipxe');
+    $packet->setOptionValue(77, 'ipxe');
     # wire: \x04ipxe
 
-    $packet->addOptionValue(77, ['ipxe', 'BIOS']);
+    $packet->setOptionValue(77, ['ipxe', 'BIOS']);
     # wire: \x04ipxe\x04BIOS
 
 C<getOptionValue> returns a comma-separated string of all
 decoded blocks.
 
-To supply pre-encoded RFC 3004 data, use C<addOptionRaw>.
+To supply pre-encoded RFC 3004 data, use C<setOptionRaw>.
 
 =back
 

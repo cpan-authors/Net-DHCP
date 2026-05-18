@@ -76,28 +76,28 @@ BEGIN {
 	sub OptionSubnetMask {
 		my ($res, $opt) = @_;
 
-		$res->addOptionValue(DHO_SUBNET_MASK(), '255.255.255.255');
+		$res->setOptionValue(DHO_SUBNET_MASK(), '255.255.255.255');
 	}
 	$addOption{DHO_SUBNET_MASK()} = \&OptionSubnetMask;
 
 	sub OptionDomainName {
 		my ($res, $opt) = @_;
 
-		$res->addOptionValue(DHO_DOMAIN_NAME(), $domainname);
+		$res->setOptionValue(DHO_DOMAIN_NAME(), $domainname);
 	}
 	$addOption{DHO_DOMAIN_NAME()} = \&OptionDomainName;
 
 	sub OptionDomainNameServers {
 		my ($res, $opt) = @_;
 
-		$res->addOptionValue(DHO_DOMAIN_NAME_SERVERS(), $domainnameservers);
+		$res->setOptionValue(DHO_DOMAIN_NAME_SERVERS(), $domainnameservers);
 	}
 	$addOption{DHO_DOMAIN_NAME_SERVERS()} = \&OptionDomainNameServers;
 
 	sub OptionClasslessStaticRoutes {
 		my ($res, $opt) = @_;
 
-		$res->addOptionValue($opt, [ map { [$_, '0.0.0.0'] } @subnets ]);
+		$res->setOptionValue($opt, [ map { [$_, '0.0.0.0'] } @subnets ]);
 	}
 	$addOption{121} = \&OptionClasslessStaticRoutes;
 	$addOption{249} = \&OptionClasslessStaticRoutes;

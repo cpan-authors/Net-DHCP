@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 18;
+use Test::More tests => 20;
 
 BEGIN { use_ok( 'Net::DHCP::Packet' ); }
 BEGIN { use_ok( 'Net::DHCP::Constants' ); }
@@ -257,29 +257,29 @@ subtest 'packcsr / unpackcsr' => sub {
     is($unpacked[6], '0.0.0.0/0',      'full round-trip prefix 4');
 };
 
-# ----- end-to-end through addOptionValue / getOptionValue -----
+# ----- end-to-end through setOptionValue / getOptionValue -----
 
-subtest 'integration via addOptionValue / getOptionValue' => sub {
+subtest 'integration via setOptionValue / getOptionValue' => sub {
     plan tests => 6;
 
     my $p = Net::DHCP::Packet->new;
 
     # add a client-id option via high-level API
-    $p->addOptionValue(DHO_DHCP_CLIENT_IDENTIFIER(), '0010A706DFFF');
+    $p->setOptionValue(DHO_DHCP_CLIENT_IDENTIFIER(), '0010A706DFFF');
     my $raw = $p->getOptionRaw(DHO_DHCP_CLIENT_IDENTIFIER());
     ok(defined $raw, 'client-id option stored');
-    is(unpack('C', substr($raw, 0, 1)), 1, 'type byte = 1 via addOptionValue');
-    is(unpack('H*', substr($raw, 1)), '0010a706dfff', 'value via addOptionValue');
+    is(unpack('C', substr($raw, 0, 1)), 1, 'type byte = 1 via setOptionValue');
+    is(unpack('H*', substr($raw, 1)), '0010a706dfff', 'value via setOptionValue');
 
-    $p->addOptionValue(DHO_DHCP_CLIENT_IDENTIFIER(), 'my-id');
+    $p->setOptionValue(DHO_DHCP_CLIENT_IDENTIFIER(), 'my-id');
     $raw = $p->getOptionRaw(DHO_DHCP_CLIENT_IDENTIFIER());
     is(unpack('C', substr($raw, 0, 1)), 0, 'type byte = 0 for text');
-    is(substr($raw, 1), 'my-id', 'text value via addOptionValue');
+    is(substr($raw, 1), 'my-id', 'text value via setOptionValue');
 
     # SIP server
-    $p->addOptionValue(DHO_SIP_SERVERS(), '192.0.2.1');
+    $p->setOptionValue(DHO_SIP_SERVERS(), '192.0.2.1');
     $raw = $p->getOptionRaw(DHO_SIP_SERVERS());
-    is(unpack('C', substr($raw, 0, 1)), 1, 'sipserv type byte = 1 via addOptionValue');
+    is(unpack('C', substr($raw, 0, 1)), 1, 'sipserv type byte = 1 via setOptionValue');
 };
 
 # ----- edge cases -----
@@ -317,9 +317,9 @@ subtest 'serialized round-trip' => sub {
     plan tests => 8;
 
     my $p = Net::DHCP::Packet->new;
-    $p->addOptionValue(DHO_DHCP_CLIENT_IDENTIFIER(), '0010A706DFFF');
-    $p->addOptionValue(DHO_SIP_SERVERS(), '192.0.2.1');
-    $p->addOptionValue(DHO_CLASSLESS_STATIC_ROUTE(), '192.0.2.0/8 192.0.2.1 198.51.100.0/16 198.51.100.1');
+    $p->setOptionValue(DHO_DHCP_CLIENT_IDENTIFIER(), '0010A706DFFF');
+    $p->setOptionValue(DHO_SIP_SERVERS(), '192.0.2.1');
+    $p->setOptionValue(DHO_CLASSLESS_STATIC_ROUTE(), '192.0.2.0/8 192.0.2.1 198.51.100.0/16 198.51.100.1');
 
     my $wire = $p->serialize;
     ok(length($wire) > 0, 'serialized packet non-empty');
@@ -344,18 +344,18 @@ subtest 'getOptionValue decode' => sub {
     plan tests => 3;
 
     my $p = Net::DHCP::Packet->new;
-    $p->addOptionValue(DHO_DHCP_CLIENT_IDENTIFIER(), 'aabbccdd');
+    $p->setOptionValue(DHO_DHCP_CLIENT_IDENTIFIER(), 'aabbccdd');
     my $val = $p->getOptionValue(DHO_DHCP_CLIENT_IDENTIFIER());
-    like($val, qr/aabbccdd/, 'clientid decoded through getOptionValue');
+    is($val, 'aabbccdd', 'clientid decoded through getOptionValue');
 
-    $p->addOptionValue(DHO_SIP_SERVERS(), '192.0.2.1');
+    $p->setOptionValue(DHO_SIP_SERVERS(), '192.0.2.1');
     $val = $p->getOptionValue(DHO_SIP_SERVERS());
-    like($val, qr/192\.0\.2\.1/, 'sipserv decoded through getOptionValue');
+    is($val, '192.0.2.1', 'sipserv decoded through getOptionValue');
 
-    # CSR via addOptionValue (packcsr handles both arrayref and scalar string)
-    $p->addOptionValue(DHO_CLASSLESS_STATIC_ROUTE(), '192.0.2.0/8 192.0.2.1');
+    # CSR via setOptionValue (packcsr handles both arrayref and scalar string)
+    $p->setOptionValue(DHO_CLASSLESS_STATIC_ROUTE(), '192.0.2.0/8 192.0.2.1');
     $val = $p->getOptionValue(DHO_CLASSLESS_STATIC_ROUTE());
-    like($val, qr/192\.0\.0\.0\/8/, 'CSR via addOptionValue');
+    like($val, qr/192\.0\.0\.0\/8/, 'CSR via setOptionValue');
 };
 
 # ----- regression: unpacksipserv type-0 fix -----
@@ -427,7 +427,7 @@ subtest 'multi-chunk CSR round-trip' => sub {
     }
 
     my $p = Net::DHCP::Packet->new;
-    $p->addOptionValue(DHO_CLASSLESS_STATIC_ROUTE(), \@routes);
+    $p->setOptionValue(DHO_CLASSLESS_STATIC_ROUTE(), \@routes);
 
     my $wire = $p->serialize;
     ok(length($wire) > 0, '30-route CSR serialized');
@@ -491,13 +491,13 @@ subtest 'packuserclass / unpackuserclass' => sub {
     is(uuc(''),    undef,                        'unpackuserclass empty returns undef');
 };
 
-# ----- userclass addOptionValue multi-class round-trip -----
+# ----- userclass setOptionValue multi-class round-trip -----
 
-subtest 'userclass addOptionValue multi-class round-trip' => sub {
+subtest 'userclass setOptionValue multi-class round-trip' => sub {
     plan tests => 3;
 
     my $p = Net::DHCP::Packet->new;
-    $p->addOptionValue(DHO_USER_CLASS(), 'ipxe, BIOS');
+    $p->setOptionValue(DHO_USER_CLASS(), 'ipxe, BIOS');
 
     my $wire = $p->serialize;
     my $p2   = Net::DHCP::Packet->new($wire);
@@ -510,4 +510,88 @@ subtest 'userclass addOptionValue multi-class round-trip' => sub {
     # Also verify via raw: two RFC 3004 blocks
     my $raw = $p2->getOptionRaw(DHO_USER_CLASS());
     is(length($raw), 10, 'two userclass blocks on wire: 2 * (1 + 4) bytes');
+};
+
+# ----- pushOptionValue -----
+
+subtest 'pushOptionValue' => sub {
+    plan tests => 11;
+
+    my $p = Net::DHCP::Packet->new;
+
+    # pushOptionValue on inets (list format): first push stores scalar
+    $p->pushOptionValue(DHO_ROUTERS(), '192.0.2.1');
+    my $raw = $p->getOptionRaw(DHO_ROUTERS());
+    ok(defined $raw, 'routers set after first push');
+    is(length $raw, 4, 'one IP packed = 4 bytes');
+
+    # second push promotes to arrayref
+    $p->pushOptionValue(DHO_ROUTERS(), '192.0.2.2');
+    my $stored = $p->{options}->{DHO_ROUTERS()};
+    ok(ref $stored eq 'ARRAY', 'second push promotes to arrayref');
+    is(scalar @$stored, 2, 'two chunks stored');
+
+    # third push appends
+    $p->pushOptionValue(DHO_ROUTERS(), '192.0.2.3');
+    is(scalar @$stored, 3, 'third push appends to arrayref');
+
+    # serialize, parse, verify all three IPs survived
+    my $wire = $p->serialize;
+    my $p2   = Net::DHCP::Packet->new($wire);
+    my $val  = $p2->getOptionValue(DHO_ROUTERS());
+    like($val, qr/192\.0\.2\.1/, 'first IP survived');
+    like($val, qr/192\.0\.2\.2/, 'second IP survived');
+    like($val, qr/192\.0\.2\.3/, 'third IP survived');
+
+    # pushOptionValue on scalar-only format (inet) croaks
+    eval {
+        my $p3 = Net::DHCP::Packet->new;
+        $p3->pushOptionValue(DHO_SUBNET_MASK(), '255.255.255.0');
+    };
+    like($@, qr/pushOptionValue.*does not accept multiple values/,
+        'pushOptionValue on inet croaks');
+
+    # pushOptionValue on csr
+    {
+        my $p4 = Net::DHCP::Packet->new;
+        $p4->pushOptionValue(DHO_CLASSLESS_STATIC_ROUTE(),
+            '192.0.2.0/8 192.0.2.1');
+        $p4->pushOptionValue(DHO_CLASSLESS_STATIC_ROUTE(),
+            '198.51.100.0/16 198.51.100.1');
+        my $v = $p4->getOptionValue(DHO_CLASSLESS_STATIC_ROUTE());
+        like($v, qr/192\.0\.0\.0/, 'CSR first push preserved');
+        like($v, qr/198\.51\.0\.0/, 'CSR second push preserved');
+    }
+};
+
+# ----- deprecated aliases -----
+
+subtest 'deprecated aliases' => sub {
+    plan tests => 6;
+
+    my $p = Net::DHCP::Packet->new;
+
+    # addOptionRaw deprecation warning
+    {
+        my @warnings;
+        local $SIG{__WARN__} = sub { push @warnings, @_ };
+        $p->addOptionRaw(DHO_SUBNET_MASK(), "\xff\xff\xff\0");
+        is(scalar @warnings, 1, 'addOptionRaw triggers one warning');
+        like($warnings[0], qr/deprecated.*setOptionRaw/,
+            'addOptionRaw warning mentions setOptionRaw');
+        is($p->getOptionRaw(DHO_SUBNET_MASK()), "\xff\xff\xff\0",
+            'addOptionRaw still sets value correctly');
+    }
+
+    # addOptionValue deprecation warning
+    {
+        my @warnings;
+        local $SIG{__WARN__} = sub { push @warnings, @_ };
+        $p->addOptionValue(DHO_DHCP_MESSAGE_TYPE(), DHCPINFORM());
+        is(scalar @warnings, 1, 'addOptionValue triggers one warning');
+        like($warnings[0], qr/deprecated.*setOptionValue/,
+            'addOptionValue warning mentions setOptionValue');
+        is($p->getOptionValue(DHO_DHCP_MESSAGE_TYPE()), DHCPINFORM(),
+            'addOptionValue still sets value correctly');
+    }
 };
