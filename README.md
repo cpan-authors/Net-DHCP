@@ -32,7 +32,7 @@ All other files are licensed as described at the bottom of this file.
 
 Please remove the problem files if needed for distribution packaging etc.
 
-You can fork and submit enhancements etc via https://github.com/djzort/Net-DHCP
+You can fork and submit enhancements etc via https://github.com/cpan-authors/Net-DHCP
 
 1. DESCRIPTION
 --------------
